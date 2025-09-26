@@ -1,0 +1,34 @@
+Package: ShiftHappens
+Type: Package
+Title: Detecting, Visualizing and Estimating Shifts 
+Version: 0.1.0
+Author: c(
+    person("Felipe", "Mendez", email = "felipe-alberto.mendez-rios@inrae.fr",role = c("aut", "cre"),comment = c(ORCID = "0009-0004-0371-8699")),
+    person("Benjamin", "Renard", email = "benjamin.renard@inrae.fr",role = c("aut"),comment = c(ORCID = "0000-0001-8447-5430")),
+    person("Matteo", "Darienzo", role = c("aut")),
+    person("INRAE", role = c("fnd")),
+    person("Ministère de la Transition Ecologique - SCHAPI", role = c("fnd")))
+Maintainer: <benjamin.renard@inrae.fr>
+Description: Tools for detecting, visualizing and estimating shifts, 
+    with a specific focus on stage-discharge rating shifts.
+    The main methods are described in Darienzo et al. (2021) <https://doi.org/10.1029/2020WR028607>
+    and Mansanarez et al. (2019) <https://doi.org/10.1029/2018WR023389>.
+    See also BayDERS <https://github.com/MatteoDarienzo/BayDERS> for similar tools, 
+    and RatingShiftHappens <https://github.com/Felipemendezrios/RatingShiftHappens> for an older version of this package. 
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports:
+	RBaM,
+	ggplot2,
+	patchwork,
+	dplyr,
+	tidyr,
+	lubridate
+Suggests: 
+    knitr,
+    rmarkdown
+Depends: 
+    R (>= 3.5.0)
