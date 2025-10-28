@@ -36,6 +36,7 @@ check_square_matrix <- function(x){
 #' @param d real vector, duration (in days) after origin.date
 #' @param origin.date value, origin date in character, POSIXct or Date format
 #' @return the date nday days after origin.date, in the same format as the latter
+#' @import lubridate
 #' @keywords internal
 numeric_to_time <- function(d,origin.date){
   if (lubridate::is.Date(origin.date)) {
