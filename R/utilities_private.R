@@ -35,7 +35,7 @@ check_square_matrix <- function(x){
 #'
 #' @param d real vector, duration (in days) after origin.date
 #' @param origin.date value, origin date in character, POSIXct or Date format
-#' @return the date nday days after origin.date, in the same format as the latter
+#' @return the date d days after origin.date, in the same format as the latter
 #' @import lubridate
 #' @keywords internal
 numeric_to_time <- function(d,origin.date){
@@ -52,3 +52,51 @@ numeric_to_time <- function(d,origin.date){
     return(parsed_date+d*86400)
   }
 }
+
+#' Time to numeric format
+#'
+#' Cast a time or date into a numeric interpreted as the duration(in dayss) after an origin date.
+#'
+#' @param date vector, time in POSIXct, character or Date format
+#'
+#' @return List with the following components :
+#' \enumerate{
+#'   \item origin.date: time in POSIXct, character or Date format, corresponding to the
+#'       oldest date from the input d.
+#'   \item d: real vector, duration (in days) after origin.date.
+#' }
+#' @import lubridate
+#' @keywords internal
+time_to_numeric <- function(date){
+  # Examples
+  # time_to_numeric(c(as.POSIXct('2024-04-19 12:30:00',tz='UTC'),
+  #                   as.POSIXct('2024-03-19 18:30:00',tz='UTC')))
+  # time_to_numeric(c(as.Date('2024/02/19'),as.Date('2024/02/10')))
+  # time_to_numeric(c(as.character('20240419'),as.character('20240119')))
+
+  if(lubridate::is.Date(date)){
+    origin=min(date)
+    # Interval in days between origin and each date
+    diff_days <- lubridate::time_length(lubridate::interval(origin, date),"day")
+    return(list(origin.date=origin,d=diff_days))
+  } else if (!lubridate::is.POSIXct(date)){
+    date_string <- as.character(date)
+    # Attempt to parse the date using various formats
+    parsed_date <- lubridate::parse_date_time(date_string,tz = "UTC",
+                                              orders  = c('ymd H:M:S', 'ymd', 'mdy',
+                                                          'dmy', 'ymd HMS', 'y-m-d H:M:S',
+                                                          'y/m/d H:M:S', 'y/m/d HMS' ))
+    if(any(is.na(parsed_date)))stop('The format is not supported; please verify the input date or time format')
+    # Transform date to numeric format: origin default is "1970-01-01 00:00:00 UTC"
+    origin=min(parsed_date)
+    diff_days <- lubridate::time_length(lubridate::interval(origin, parsed_date), "day")
+    return(list(origin.date=origin,d=diff_days))
+  } else {
+    # Read time zone
+    date.transf <- date
+    origin=min(date.transf)
+    diff_days <- lubridate::time_length(lubridate::interval(origin, date.transf), "day")
+    return(list(origin.date=origin,d=diff_days))
+  }
+}
+

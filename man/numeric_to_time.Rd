@@ -12,7 +12,7 @@ numeric_to_time(d, origin.date)
 \item{origin.date}{value, origin date in character, POSIXct or Date format}
 }
 \value{
-the date nday days after origin.date, in the same format as the latter
+the date d days after origin.date, in the same format as the latter
 }
 \description{
 Cast a numeric interpreted as the duration after an origin date into a time format.

@@ -1,3 +1,218 @@
+#' Segmentation engine
+#'
+#' Segmentation procedure for a \strong{known} given number of segments
+#'
+#' @param obs real vector, observations
+#' @param time vector, time in POSIXct, string or numeric format
+#' @param u real vector, uncertainty in observations (as a standard deviation)
+#' @param nS integer, number of segments
+#' @param nMin integer, minimum number of observations by segment
+#' @param nCycles integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
+#' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
+#' @param nSlim integer, MCMC slim step
+#' @param temp.folder directory, temporary directory to write computations
+#' @param mu_prior list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)
+#' @param doQuickApprox logical, use quick approximation? see ?Segmentation_quickApprox
+#' @param varShift logical, allow for a shifting variance? Only used when doQuickApprox=TRUE.
+#' @param alpha real in (0;1), type-I error level of the underlying step-change test. Only used when doQuickApprox=TRUE.
+#' @param ... other arguments passed to RBaM::BaM.
+#'
+#' @return list with the following components:
+#' \enumerate{
+#'   \item data: data frame, all data with their respective periods after segmentation
+#'   \item shifts: data frame, all detected shift time in numeric or POSIXct format in UTC
+#'   \item mcmc: data frame, MCMC simulations
+#'   \item DIC: real, DIC estimation
+#'   \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
+#' }
+#'
+#' @source \url{https://theses.hal.science/tel-03211343}
+#' @source \url{https://agupubs.onlinelibrary.wiley.com/doi/epdf/10.1029/2020WR028607}
+#'
+#' @examples
+#' # Default segmentation using quick approximation
+#' res=Segmentation_Engine(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH)
+#' res$shifts
+#' hist(res$mcmc$tau)
+#' # Segmentation using BaM, allowing more than 2 segments and the use of priors
+#' try({
+#' res=Segmentation_Engine(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH,
+#'      doQuickApprox=FALSE,nS=3,
+#'      mu_prior=list(parameter(name=paste0('mu1'),init=6,prior.dist='Gaussian',prior.par=c(6,5)),
+#'                  parameter(name=paste0('mu2'),init=8,prior.dist='Gaussian',prior.par=c(8,2))))
+#' })
+#' @export
+#' @importFrom RBaM parameter xtraModelInfo model dataset mcmcOptions mcmcCooking remnantErrorModel BaM
+#' @importFrom stats quantile sd
+#' @importFrom utils read.table
+Segmentation_Engine <- function(obs,
+                                time=1:length(obs),
+                                u=0*obs,
+                                nS=2,
+                                nMin=ifelse(doQuickApprox,3,1),
+                                nCycles=100,
+                                burn=0.5,
+                                nSlim=max(nCycles/10,1),
+                                temp.folder=file.path(tempdir(),'BaM'),
+                                mu_prior=list(NULL),doQuickApprox=TRUE,
+                                varShift=FALSE,alpha=0.1,...){
+
+  if(length(obs)<2)stop('At least 2 observations are required',call.=FALSE)
+  if(length(obs)<nS)stop('Number of observations is lower than the number of segments',call.=FALSE)
+  if(any(is.na(obs)) | any(is.na(time)) | any(is.na(u)))stop('Missing values not allowed in observation, time and uncertainty')
+
+  if(nS<=0)stop('Maximum number of segments should be larger than 0',call.=FALSE)
+  if(trunc(length(obs)/nS)<nMin)stop(paste0('The minimum number of observations per segment (',nMin,') cannot be matched with the number of observations (',length(obs),
+                                            ') and the number of segments (',nS,')'))
+  if(is.null(check_equal_length(obs,time,u)))stop('The observations, time and uncertainty have not the same length')
+
+  # Sort data frame case time not ascending
+  DF.order <- data.frame(obs=obs,time=time,u=u)
+  DF.order <- DF.order[order(DF.order$time),]
+
+  # Check time format
+  numeric.check=TRUE
+
+  # Get origin date of the segmentation
+  origin.date <- min(DF.order$time)
+
+  # Date transformation function to passe to numeric format if necessary
+  if(!is.numeric(DF.order$time)){
+    DateTransformed <- time_to_numeric(date=DF.order$time)
+    DF.order$time <- DateTransformed$d
+    origin.date <- DateTransformed$origin.date
+    numeric.check=FALSE
+  }
+
+  obs <- DF.order$obs
+  time <- DF.order$time
+  u <- DF.order$u
+
+  if(doQuickApprox){
+    hasPrior=!sapply(mu_prior,is.null)
+    if(hasPrior){
+      warning('Quick approximation does not handle prior information. The provided priors will be ignored.')
+    }
+    nSim=as.integer(100*nCycles*burn/nSlim)
+    out=Segmentation_quickApprox(obs=obs,time=time,u=u,nS=nS,nMin=nMin,
+                                 nSim=nSim,varShift=varShift,alpha=alpha)
+  } else {
+    npar = nS + nS - 1
+
+    priors <- vector(mode = 'list',length = npar)
+    # Extract mu parameter from if user-defined
+    if(is.null(mu_prior[[1]])){
+      # Set default for mu_prior if no mu_prior are provided
+      for(i in 1:nS){
+        priors [[i]] <- RBaM::parameter(name=paste0('mu',i),
+                                        init=mean(obs),
+                                        prior.dist = 'FlatPrior' ,
+                                        prior.par = NULL)
+      }
+    }else{
+      # Use the provided mu parameter from mu_prior
+      for(i in 1:nS){
+        mu_list <- mu_prior[[1]]
+        mu_list$name <- paste0(mu_list$name,i)
+        priors [[i]] <- mu_list
+      }
+    }
+
+    if(i>1){
+      # Set default for tau_prior
+      prior_tau_init <- as.numeric(stats::quantile(time,probs = seq(1,nS-1)/nS))
+
+      for(i in 1:(nS-1)){
+        priors [[nS+i]] <- RBaM::parameter(name=paste0('tau',i),
+                                           init= prior_tau_init[i],
+                                           prior.dist = 'FlatPrior' ,
+                                           prior.par = NULL)
+      }
+    }
+    # Config_Xtra
+    xtra=RBaM::xtraModelInfo(object=c(nS=nS,tmin_xtra=0,nmin_xtra=nMin,option_xtra=1))
+    # Model
+    mod=RBaM::model(
+      ID='Segmentation',
+      nX=1,
+      nY=1,
+      par=priors,
+      xtra=xtra)
+
+    # dataset object
+    data=RBaM::dataset(X=data.frame(time),
+                       Y=data.frame(obs),
+                       Yu=data.frame(u),
+                       data.dir=temp.folder)
+
+    mcmc_temp=RBaM::mcmcOptions(nCycles=nCycles)
+    cook_temp=RBaM::mcmcCooking(burn=burn,nSlim=nSlim)
+
+    remnantInit=stats::sd(obs)
+    if(is.na(remnantInit)){ # happens when nObs=1
+      remnantInit=abs(mean(obs))
+    }
+    if(remnantInit==0){remnantInit=1}
+    remnant_prior <- list(RBaM::remnantErrorModel(funk = "Constant",
+                                                  par = list(RBaM::parameter(name="gamma1",
+                                                                             init=remnantInit,
+                                                                             prior.dist = "FlatPrior+"))))
+
+    # Run BaM executable
+    RBaM::BaM(mod=mod,
+              data=data,
+              workspace=temp.folder,
+              mcmc=mcmc_temp,
+              cook = cook_temp,
+              remnant = remnant_prior,...)
+
+    mcmc.segm    <- utils::read.table(file=file.path(temp.folder,"Results_Cooking.txt"),header=TRUE)
+    mcmc.DIC     <- utils::read.table(file=file.path(temp.folder,"Results_DIC.txt"),header=FALSE)
+    resid.segm   <- utils::read.table(file=file.path(temp.folder,"Results_Residuals.txt"),header=TRUE)
+
+    colnames(mcmc.segm)[ncol(mcmc.segm)-1] <- "structural_sd"
+
+    simulation.MAP <- resid.segm$Y1_sim
+
+    data = data.frame(time=time,obs=obs,u=u,
+                      I95_lower=obs+stats::qnorm(0.025)*u,I95_upper=obs+stats::qnorm(0.975)*u,
+                      period = 1)
+
+    if(nS==1){
+      shift=data.frame(tau=numeric(0), # no shift time
+                       I95_lower=numeric(0),
+                       I95_upper=numeric(0))
+    } else {
+      shift <- c()
+      for(j in 1:(nS-1)){
+        foo=data.frame(tau=mcmc.segm[which.max(mcmc.segm$LogPost),(nS+j)],
+                                    I95_lower=stats::quantile(mcmc.segm[,(nS+j)],probs=c(0.025)),
+                                    I95_upper=stats::quantile(mcmc.segm[,(nS+j)],probs=c(0.975)))
+        shift <- rbind(shift,foo)
+      }
+      rownames(shift) <- NULL
+      shift <- shift[order(shift$tau),]
+
+      # Store sub series into a list
+      obss=periods=vector(mode='list',length=nS)
+      intervals.time.shift=c(-Inf,shift$tau,Inf) # intervals defined by time shifts
+      for(i in 1:nS){
+        position.ti.p <- which((time-intervals.time.shift[[i]])>=0)[1]
+        position.tf.p <- rev(which((time-intervals.time.shift[[i+1]])<0))[1]
+        obss[[i]]=obs[position.ti.p:position.tf.p]
+        periods[[i]]=rep(i,length(obss[[i]]))
+      }
+      data$period = unlist(periods)
+    }
+    # Assemble output object
+    out=list(data=data,shifts=shift,mcmc=mcmc.segm,
+             DIC=mcmc.DIC[1,2],origin.date=origin.date)
+  }
+  # Transform back all time into original units
+  if(!numeric.check){out=transformDatesInOutput(out,origin.date)}
+  return(out)
+}
+
 #' Segmentation engine - quick approximation algorithm
 #'
 #' A quick approximation to the segmentation procedure for either one or two segments, and
@@ -277,7 +492,7 @@ transformDatesInOutput <- function(out,origin.date){
     out$plot$density.inc.tau$tau_upper_inc <- numeric_to_time(d=out$plot$density.inc.tau$tau_upper_inc,origin.date = origin.date)
     out$plot$density.inc.tau$taU_MAP <- numeric_to_time(d=out$plot$density.inc.tau$taU_MAP,origin.date=origin.date)
   }
-  out$origin.date.p=origin.date
+  out$origin.date=origin.date
   return(out)
 }
 
