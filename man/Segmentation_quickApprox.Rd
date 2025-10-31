@@ -35,26 +35,12 @@ Segmentation_quickApprox(
 \value{
 list with the following components:
 \enumerate{
-\item summary: list, summarize the information to present to the user
-\itemize{
 \item data: data frame, data augmented with a column denoting the period after segmentation
-\item shift: data frame, detected shift time in numeric or POSIXct format in UTC
-}
-\item plot : list, data formatted to use as input for some plot functions
-\itemize{
-\item density.tau: data frame, a table with three columns. The first column indicates the specific shift being analyzed.
-The second column contains the value of the shift time tau. The last columns shows the probability density associated
-with each tau value
-\item density.inc.tau: data frame, all information about the 95\% credibility interval and the Maximum a posterior (MAP) estimation
-for shift times with their associated probability densities
-}
-\item tau: real, estimated shift time in numeric or POSIXct format in UTC
-\item segments: list, segment mean value indexed by the list number
+\item shifts: data frame, detected shift times in numeric or POSIXct format in UTC
 \item mcmc: data frame, Monte-Carlo simulations. Note that values for mu's and sigma's are fixed to the values corresponding
 to the maxpost tau.
-\item data.p: list, separate and assign information by identified stable period indexed by the list number
 \item DIC: real, pseudo-DIC (see description)
-\item origin.date.p: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
+\item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
 }
 }
 \description{
@@ -77,5 +63,6 @@ The resulting algorithm is MCMC-free and independent of RBaM.
 \examples{
 # Segmentation into two segments for the RhoneRiverAMAX data set (details in ?RhoneRiverAMAX)
 res=Segmentation_quickApprox(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH,nS=2)
-res$summary$shift
+res$shifts
+hist(res$mcmc$tau)
 }

@@ -14,9 +14,9 @@ getOutputList(time, obs, u)
 \item{u}{real vector, uncertainty in observations (as a standard deviation)}
 }
 \value{
-a list, see ?Segmentation for details.
+a list, see ?Recursive_Segmentation for details.
 }
 \description{
-Get the default output list returned by Segmentation when failing.
+Get the default output list returned by Segmentation_Engine when failing.
 }
 \keyword{internal}

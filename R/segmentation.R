@@ -26,31 +26,18 @@
 #' @param alpha real in (0;1), type-I error level of the underlying step-change test.
 #' @return list with the following components:
 #' \enumerate{
-#'   \item summary: list, summarize the information to present to the user
-#'   \itemize{
-#'        \item data: data frame, data augmented with a column denoting the period after segmentation
-#'        \item shift: data frame, detected shift time in numeric or POSIXct format in UTC
-#'   }
-#'   \item plot : list, data formatted to use as input for some plot functions
-#'   \itemize{
-#'        \item density.tau: data frame, a table with three columns. The first column indicates the specific shift being analyzed.
-#'        The second column contains the value of the shift time tau. The last columns shows the probability density associated
-#'        with each tau value
-#'        \item density.inc.tau: data frame, all information about the 95% credibility interval and the Maximum a posterior (MAP) estimation
-#'        for shift times with their associated probability densities
-#'   }
-#'   \item tau: real, estimated shift time in numeric or POSIXct format in UTC
-#'   \item segments: list, segment mean value indexed by the list number
+#'   \item data: data frame, data augmented with a column denoting the period after segmentation
+#'   \item shifts: data frame, detected shift times in numeric or POSIXct format in UTC
 #'   \item mcmc: data frame, Monte-Carlo simulations. Note that values for mu's and sigma's are fixed to the values corresponding
 #'       to the maxpost tau.
-#'   \item data.p: list, separate and assign information by identified stable period indexed by the list number
 #'   \item DIC: real, pseudo-DIC (see description)
-#'   \item origin.date.p: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
+#'   \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
 #' }
 #' @examples
 #' # Segmentation into two segments for the RhoneRiverAMAX data set (details in ?RhoneRiverAMAX)
 #' res=Segmentation_quickApprox(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH,nS=2)
-#' res$summary$shift
+#' res$shifts
+#' hist(res$mcmc$tau)
 #' @export
 #' @importFrom stats quantile sd approxfun runif optim
 Segmentation_quickApprox <- function(obs,time=1:length(obs),u=0*obs,nS=2,
@@ -69,7 +56,7 @@ Segmentation_quickApprox <- function(obs,time=1:length(obs),u=0*obs,nS=2,
   if(nS>2){stop('Quick-approximation algorithm is only available for nS<3 (i.e. single-shift model at most)')}
 
   # Start preparing output list
-  out=getOutputList_Engine(time,obs,u)
+  out=getOutputList(time,obs,u)
   # no-change model
   start=c(mean(obs),sd(obs))
   if(all(u==0)){ # no need to optimize, estimate is explicit
@@ -81,11 +68,9 @@ Segmentation_quickApprox <- function(obs,time=1:length(obs),u=0*obs,nS=2,
     f0=opt$value
   }
   if(nS==1){ # stop here and return
-    out$segments=rep(theta0[1],n)
     out$mcmc=data.frame(mu1=rep(theta0[1],nSim),
                         structural_sd=rep(theta0[2],nSim),
                         LogPost=rep(f0,nSim))
-    out$data.p=list(obs.p=obs,time.p=time,u.p=u)
     out$DIC=-2*f0
     return(out)
   }
@@ -120,21 +105,8 @@ Segmentation_quickApprox <- function(obs,time=1:length(obs),u=0*obs,nS=2,
   # ready to return
   imax=which.max(post)
   tau=time[imax]
-  out$summary$data$period[time>tau]=2
-  n1=sum(out$summary$data$period==1)
-  n2=sum(out$summary$data$period==2)
-  out$summary$shift[1,]=c(tau,quantile(sim,probs=c(0.025,0.975)))
-  out$plot$density.tau=data.frame(Shift='tau1',Value=time,Density=post)
-  foo=approxfun(x=time,y=post)
-  out$plot$density.inc.tau=data.frame(Shift='tau1',
-                                      tau_lower_inc=out$summary$shift$I95_lower,
-                                      density_tau_lower_inc=foo(out$summary$shift$I95_lower),
-                                      tau_upper_inc=out$summary$shift$I95_upper,
-                                      density_tau_upper_inc=foo(out$summary$shift$I95_upper),
-                                      taU_MAP=tau,
-                                      density_taU_MAP=foo(tau))
-  out$tau=tau
-  out$segments=list(rep(pars[[imax]][1],n1),rep(pars[[imax]][2],n2))
+  out$data$period[time>tau]=2
+  out$shifts[1,]=c(tau,quantile(sim,probs=c(0.025,0.975)))
   out$mcmc=data.frame(mu1=pars[[imax]][1],mu2=pars[[imax]][2],tau1=sim)
   if(varShift){
     out$mcmc$sig1=pars[[imax]][3]
@@ -144,10 +116,6 @@ Segmentation_quickApprox <- function(obs,time=1:length(obs),u=0*obs,nS=2,
   }
   foo=approxfun(x=time,y=post)
   out$mcmc$LogPost=foo(sim)
-  mask=(time<=tau)
-  out$data.p$obs.p=list(obs[mask],obs[!mask])
-  out$data.p$time.p=list(time[mask],time[!mask])
-  out$data.p$u.p=list(u[mask],u[!mask])
   out$DIC=DIC1
   return(out)
 }
@@ -262,37 +230,14 @@ quickApprox_getThetaOnly <- function(tau,time,obs,u,varShift){
 #' @param u real vector, uncertainty in observations (as a standard deviation)
 #' @return a list, see ?Recursive_Segmentation for details.
 #' @keywords internal
-getOutputList_Engine <- function(time,obs,u){
-  out=list()
-  out$summary=list(data=data.frame(time=time,obs=obs,u=u,
-                                   I95_lower=obs-1.96*u,
-                                   I95_upper=obs+1.96*u,
-                                   period=1),
-                   shift=data.frame(tau=numeric(0),I95_lower=numeric(0),I95_upper=numeric(0)))
-  out$plot=list(density.tau=NULL,density.inc.tau=NULL)
-  out$tau=numeric(0)
-  out$segments=numeric(0)
-  out$mcmc=data.frame()
-  out$data.p=list()
-  out$DIC=NA
-  out$origin.date.p=min(time)
-  return(out)
-}
-
-#' Default output list
-#'
-#' Get the default output list returned by Segmentation when failing.
-#'
-#' @param time real vector, time
-#' @param obs real vector, observations
-#' @param u real vector, uncertainty in observations (as a standard deviation)
-#' @return a list, see ?Segmentation for details.
-#' @keywords internal
 getOutputList <- function(time,obs,u){
-  res=getOutputList_Engine(time,obs,u)
-  res$data.p=list(obs.p=res$summary$data$obs,time.p=res$summary$data$time,u.p=res$summary$data$u)
-  out=list(summary=res$summary,plot=res$plot,results=list(res),nS=1,
-           origin.date=res$origin.date.p)
+  out=list()
+  out$data=data.frame(time=time,obs=obs,u=u,
+                      I95_lower=obs-1.96*u,I95_upper=obs+1.96*u,period=1)
+  out$shifts=data.frame(tau=numeric(0),I95_lower=numeric(0),I95_upper=numeric(0))
+  out$mcmc=data.frame()
+  out$DIC=NA
+  out$origin.date=min(time)
   return(out)
 }
 
