@@ -1,3 +1,100 @@
+#' Segmentation
+#'
+#' Segmentation procedure for an \strong{unknown} given number of segments
+#'
+#' @param obs real vector, observations
+#' @param time real vector, time in POSIXct, string or numeric format
+#' @param u real vector, uncertainty in observations (as a standard deviation)
+#' @param nSmax integer, maximum number of segments to assess
+#' @param nMin integer, minimum number of observations by segment
+#' @param nCycles integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
+#' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
+#' @param nSlim integer, MCMC slim step
+#' @param temp.folder directory, temporary directory to write computations
+#' @param mu_prior list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)
+#' @param doQuickApprox logical, use quick approximation? see ?Segmentation_quickApprox
+#' @param varShift logical, allow for a shifting variance? Only used when doQuickApprox=TRUE.
+#' @param alpha real in (0;1), type-I error level of the underlying step-change test. Only used when doQuickApprox=TRUE.
+#' @param ... other arguments passed to RBaM::BaM.
+#'
+#' @return list with the following components:
+#' \enumerate{
+#'   \item nS: integer, optimal number of segments (minimum DIC)
+#'   \item DICs: real vector, DICs computed for each number of segment
+#'   \item data: data frame, all data with their respective periods after segmentation (for optimal nS)
+#'   \item shifts: data frame, all detected shift time in numeric or POSIXct format in UTC (for optimal nS)
+#'   \item mcmc: data frame, MCMC simulations (for optimal nS)
+#'   \item DIC: real, DIC estimation (for optimal nS)
+#'   \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
+#'   \item results: list, intermediate results for all tested number of segments see ?Segmentation_Engine
+#' }
+#'
+#' @examples
+#' res=Segmentation(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH)
+#' res$shifts
+#' res$DICs
+#' hist(res$mcmc$tau)
+#' # Segmentation using BaM, allowing more than 2 segments
+#' \dontrun{
+#' # This line of code is wrapped in \dontrun{} since it relies
+#' # on the installation of an executable with the package RBaM.
+#' # See ?RBaM::downloadBaM for downloading and installing this executable.
+#' res=Segmentation(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH,
+#'      doQuickApprox=FALSE,nSmax=3)
+#' }
+#' @export
+Segmentation <- function(obs,
+                         time=1:length(obs),
+                         u=0*obs,
+                         nSmax=2,
+                         nMin=ifelse(doQuickApprox,3,1),
+                         nCycles=100,
+                         burn=0.5,
+                         nSlim=max(nCycles/10,1),
+                         temp.folder=file.path(tempdir(),'BaM'),
+                         mu_prior = list(),doQuickApprox=TRUE,
+                         varShift=FALSE,alpha=0.1,...){
+
+  if(nSmax<=0){
+    stop('Maximum number of segments should be larger than 0',call.=FALSE)
+  }
+  if(length(obs)<2){
+    stop('At least 2 observations are required',call.=FALSE)
+  }
+
+  res=vector(mode = 'list',length = nSmax)
+  DICs <- rep(NA,nSmax)
+  for(i in (1:nSmax)){
+    nS <- i
+    quick=ifelse(nS<3,doQuickApprox,FALSE)
+    if(length(obs)<nS){
+      warning(paste0('NA was returned because the number of observations (',length(obs),
+                     ') is lower than the number of segments (',nS,')'))
+      DICs [i] <- NA
+    }else if(trunc(length(obs)/nS)<nMin){
+      warning(paste0('The minimum number of observations per segment (',nMin,') cannot be matched with the number of observations (',length(obs),
+                     ') and the number of segments (',nS,')'))
+      DICs [i] <- NA
+    }else{
+      # Check if prior knowledge has been provided:
+      if(length(mu_prior)==0){
+        mu_args <- list(NULL)
+      }else{
+        mu_args <- mu_prior
+      }
+      res[[i]] <- Segmentation_Engine(obs,time,u,nS,nMin,nCycles,burn,nSlim,temp.folder,mu_prior=mu_args,
+                                      doQuickApprox=quick,varShift=varShift,alpha=alpha,...)
+      DICs [i] <- res[[i]]$DIC
+    }
+  }
+  nS=which.min(DICs)
+  out=res[[nS]] # return result for optimal number of segments
+  out$nS=nS # Add optimal number of segments
+  out$DICs=DICs # Add DICs for each number of segments
+  out$results=res # Add all partial results for all tested number of segments
+  return(out)
+}
+
 #' Segmentation engine
 #'
 #' Segmentation procedure for a \strong{known} given number of segments
@@ -35,12 +132,15 @@
 #' res$shifts
 #' hist(res$mcmc$tau)
 #' # Segmentation using BaM, allowing more than 2 segments and the use of priors
-#' try({
+#' \dontrun{
+#' # This line of code is wrapped in \dontrun{} since it relies
+#' # on the installation of an executable with the package RBaM.
+#' # See ?RBaM::downloadBaM for downloading and installing this executable.
 #' res=Segmentation_Engine(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH,
 #'      doQuickApprox=FALSE,nS=3,
 #'      mu_prior=list(parameter(name=paste0('mu1'),init=6,prior.dist='Gaussian',prior.par=c(6,5)),
 #'                  parameter(name=paste0('mu2'),init=8,prior.dist='Gaussian',prior.par=c(8,2))))
-#' })
+#' }
 #' @export
 #' @importFrom RBaM parameter xtraModelInfo model dataset mcmcOptions mcmcCooking remnantErrorModel BaM
 #' @importFrom stats quantile sd
