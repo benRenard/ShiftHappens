@@ -3,6 +3,7 @@
 export(Segmentation)
 export(Segmentation_Engine)
 export(Segmentation_quickApprox)
+export(simpleSegmentation)
 import(lubridate)
 importFrom(RBaM,BaM)
 importFrom(RBaM,dataset)
