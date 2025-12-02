@@ -4,7 +4,13 @@
 \alias{simpleSegmentation}
 \title{simpleSegmentation object constructor.}
 \usage{
-simpleSegmentation(obs, time = 1:length(obs), u = 0 * obs)
+simpleSegmentation(
+  obs,
+  time = 1:length(obs),
+  u = 0 * obs,
+  mcmc = data.frame(),
+  DIC = NA
+)
 }
 \arguments{
 \item{obs}{real vector, observations}
@@ -12,6 +18,10 @@ simpleSegmentation(obs, time = 1:length(obs), u = 0 * obs)
 \item{time}{real vector, time}
 
 \item{u}{real vector, uncertainty in observations (as a standard deviation)}
+
+\item{mcmc}{data frame, MCMC simulations}
+
+\item{DIC}{real, DIC estimation}
 }
 \value{
 An object of class 'simpleSegmentation', containing the following fields:

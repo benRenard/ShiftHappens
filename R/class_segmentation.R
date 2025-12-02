@@ -7,6 +7,8 @@
 #' @param obs real vector, observations
 #' @param time real vector, time
 #' @param u real vector, uncertainty in observations (as a standard deviation)
+#' @param mcmc data frame, MCMC simulations
+#' @param DIC real, DIC estimation
 #' @return An object of class 'simpleSegmentation', containing the following fields:
 #' \enumerate{
 #'   \item data: data frame, all data with their respective periods after segmentation
@@ -18,8 +20,9 @@
 #' @examples
 #' sg <- simpleSegmentation(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH)
 #' @export
-simpleSegmentation<-function(obs,time=1:length(obs),u=0*obs){
-  o<-new_simpleSegmentation(obs,time,u)
+simpleSegmentation<-function(obs,time=1:length(obs),u=0*obs,
+                             mcmc=data.frame(),DIC=NA){
+  o<-new_simpleSegmentation(obs,time,u,mcmc,DIC)
   return(validate_simpleSegmentation(o))
 }
 
@@ -40,7 +43,7 @@ is.simpleSegmentation<-function(o){
 #***************************************************************************----
 # internal constructors ----
 
-new_simpleSegmentation<-function(obs,time,u){
+new_simpleSegmentation<-function(obs,time,u,mcmc,DIC){
   #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   # basic checks
   stopifnot(is.numeric(obs))
@@ -49,13 +52,18 @@ new_simpleSegmentation<-function(obs,time,u){
   stopifnot(is.vector(time))
   stopifnot(is.numeric(u))
   stopifnot(is.vector(u))
+  stopifnot(is.data.frame(mcmc))
+  stopifnot(is.na(DIC) | is.numeric(DIC))
+  if(is.null(check_equal_length(obs,time,u))){
+    stop('The observations, time and uncertainty do not have the same length')
+  }
   # assemble object
   o=list()
   o$data=data.frame(time=time,obs=obs,u=u,
                       I95_lower=obs-1.96*u,I95_upper=obs+1.96*u,period=1)
   o$shifts=data.frame(tau=numeric(0),I95_lower=numeric(0),I95_upper=numeric(0))
-  o$mcmc=data.frame()
-  o$DIC=NA
+  o$mcmc=mcmc
+  o$DIC=DIC
   o$origin.date=min(time)
   class(o) <- 'simpleSegmentation'
   return(o)
