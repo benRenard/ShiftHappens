@@ -371,7 +371,7 @@ Segmentation_quickApprox <- function(obs,time=1:length(obs),u=0*obs,nS=2,
   if(nS>2){stop('Quick-approximation algorithm is only available for nS<3 (i.e. single-shift model at most)')}
 
   # Start preparing output list
-  out=getOutputList(time,obs,u)
+  out=simpleSegmentation(obs=obs,time=time,u=u)
   # no-change model
   start=c(mean(obs),sd(obs))
   if(all(u==0)){ # no need to optimize, estimate is explicit
@@ -534,26 +534,6 @@ quickApprox_getTheta <- function(tau,time,obs,u,varShift){
 quickApprox_getThetaOnly <- function(tau,time,obs,u,varShift){
   out=quickApprox_getTheta(tau,time,obs,u,varShift)
   return(out$par)
-}
-
-#' Default output list
-#'
-#' Get the default output list returned by Segmentation_Engine when failing.
-#'
-#' @param time real vector, time
-#' @param obs real vector, observations
-#' @param u real vector, uncertainty in observations (as a standard deviation)
-#' @return a list, see ?Recursive_Segmentation for details.
-#' @keywords internal
-getOutputList <- function(time,obs,u){
-  out=list()
-  out$data=data.frame(time=time,obs=obs,u=u,
-                      I95_lower=obs-1.96*u,I95_upper=obs+1.96*u,period=1)
-  out$shifts=data.frame(tau=numeric(0),I95_lower=numeric(0),I95_upper=numeric(0))
-  out$mcmc=data.frame()
-  out$DIC=NA
-  out$origin.date=min(time)
-  return(out)
 }
 
 #' Date transformer
