@@ -24,7 +24,7 @@ simpleSegmentation(
 \item{DIC}{real, DIC estimation}
 }
 \value{
-An object of class 'simpleSegmentation', containing the following fields:
+An object of class \code{\link[=simpleSegmentation]{simpleSegmentation()}}, containing the following fields:
 \enumerate{
 \item data: data frame, all data with their respective periods after segmentation
 \item shifts: data frame, all detected shift times in numeric or POSIXct format in UTC

@@ -9,7 +9,7 @@
 #' @param u real vector, uncertainty in observations (as a standard deviation)
 #' @param mcmc data frame, MCMC simulations
 #' @param DIC real, DIC estimation
-#' @return An object of class 'simpleSegmentation', containing the following fields:
+#' @return An object of class [simpleSegmentation()], containing the following fields:
 #' \enumerate{
 #'   \item data: data frame, all data with their respective periods after segmentation
 #'   \item shifts: data frame, all detected shift times in numeric or POSIXct format in UTC

@@ -33,13 +33,12 @@ Segmentation_quickApprox(
 \item{alpha}{real in (0;1), type-I error level of the underlying step-change test.}
 }
 \value{
-list with the following components:
+An object of class \code{\link[=simpleSegmentation]{simpleSegmentation()}}, containing the following fields:
 \enumerate{
-\item data: data frame, data augmented with a column denoting the period after segmentation
-\item shifts: data frame, detected shift times in numeric or POSIXct format in UTC
-\item mcmc: data frame, Monte-Carlo simulations. Note that values for mu's and sigma's are fixed to the values corresponding
-to the maxpost tau.
-\item DIC: real, pseudo-DIC (see description)
+\item data: data frame, all data with their respective periods after segmentation
+\item shifts: data frame, all detected shift times in numeric or POSIXct format in UTC
+\item mcmc: data frame, MCMC simulations
+\item DIC: real, DIC estimation
 \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
 }
 }
