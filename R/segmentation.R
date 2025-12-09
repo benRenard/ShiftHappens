@@ -1,6 +1,6 @@
 #' Segmentation
 #'
-#' Segmentation procedure for an \strong{unknown} given number of segments
+#' Segmentation procedure for an \strong{unknown} number of segments
 #'
 #' @param obs real vector, observations
 #' @param time real vector, time in POSIXct, string or numeric format
@@ -17,17 +17,7 @@
 #' @param alpha real in (0;1), type-I error level of the underlying step-change test. Only used when doQuickApprox=TRUE.
 #' @param ... other arguments passed to RBaM::BaM.
 #'
-#' @return list with the following components:
-#' \enumerate{
-#'   \item nS: integer, optimal number of segments (minimum DIC)
-#'   \item DICs: real vector, DICs computed for each number of segment
-#'   \item data: data frame, all data with their respective periods after segmentation (for optimal nS)
-#'   \item shifts: data frame, all detected shift time in numeric or POSIXct format in UTC (for optimal nS)
-#'   \item mcmc: data frame, MCMC simulations (for optimal nS)
-#'   \item DIC: real, DIC estimation (for optimal nS)
-#'   \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
-#'   \item results: list, intermediate results for all tested number of segments see ?Segmentation_Engine
-#' }
+#' @inherit multipleSegmentation return
 #'
 #' @examples
 #' res=Segmentation(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH)
@@ -87,11 +77,7 @@ Segmentation <- function(obs,
       DICs [i] <- res[[i]]$DIC
     }
   }
-  nS=which.min(DICs)
-  out=res[[nS]] # return result for optimal number of segments
-  out$nS=nS # Add optimal number of segments
-  out$DICs=DICs # Add DICs for each number of segments
-  out$results=res # Add all partial results for all tested number of segments
+  out=multipleSegmentation(res)
   return(out)
 }
 
@@ -129,10 +115,10 @@ Segmentation <- function(obs,
 #' # This line of code is wrapped in \dontrun{} since it relies
 #' # on the installation of an executable with the package RBaM.
 #' # See ?RBaM::downloadBaM for downloading and installing this executable.
+#' prior=list(RBaM::parameter(name=paste0('mu1'),init=6,prior.dist='Gaussian',prior.par=c(6,5)),
+#'            RBaM::parameter(name=paste0('mu2'),init=8,prior.dist='Gaussian',prior.par=c(8,2))))
 #' res=Segmentation_Engine(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH,
-#'      doQuickApprox=FALSE,nS=3,
-#'      mu_prior=list(parameter(name=paste0('mu1'),init=6,prior.dist='Gaussian',prior.par=c(6,5)),
-#'                  parameter(name=paste0('mu2'),init=8,prior.dist='Gaussian',prior.par=c(8,2))))
+#'      doQuickApprox=FALSE,nS=3,mu_prior=prior)
 #' }
 #' @export
 #' @importFrom RBaM parameter xtraModelInfo model dataset mcmcOptions mcmcCooking remnantErrorModel BaM

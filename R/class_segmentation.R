@@ -3,7 +3,8 @@
 
 #' simpleSegmentation object constructor.
 #'
-#' Creates a new instance of a 'simpleSegmentation' object
+#' Creates a new instance of a 'simpleSegmentation' object, used to
+#' store the results of a segmentation with an known number of segment
 #' @param obs real vector, observations
 #' @param time real vector, time
 #' @param u real vector, uncertainty in observations (as a standard deviation)
@@ -11,6 +12,7 @@
 #'     time,obs,u,I95_lower,I95_upper,period.
 #'     If NULL, will be automatically intialised from obs,time,u.
 #'     If provided, will supersede obs, time, u.
+#' @param shifts data frame, detected shifts (with columns tau, I95_lower and I95_upper)
 #' @param mcmc data frame, MCMC simulations
 #' @param DIC real, DIC estimation
 #' @param origin.date dates origin (useful for date conversions)
@@ -32,6 +34,36 @@ simpleSegmentation<-function(obs,time=1:length(obs),u=0*obs,data=NULL,
   return(validate_simpleSegmentation(o))
 }
 
+#' multipleSegmentation object constructor.
+#'
+#' Creates a new instance of a 'multipleSegmentation' object, used to
+#' store the results of a segmentation with an unknown number of segment.
+#' @param results vector of 'simpleSegmentation' objects, segmentation results for each tested number of segments
+#'
+#' @return An object of class [multipleSegmentation()], containing the following fields:
+#' \enumerate{
+#'   \item nS: integer, optimal number of segments (minimum DIC)
+#'   \item DICs: real vector, DICs computed for each number of segment
+#'   \item data: data frame, all data with their respective periods after segmentation (for optimal nS)
+#'   \item shifts: data frame, all detected shift time in numeric or POSIXct format in UTC (for optimal nS)
+#'   \item mcmc: data frame, MCMC simulations (for optimal nS)
+#'   \item DIC: real, DIC estimation (for optimal nS)
+#'   \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
+#'   \item results: list, intermediate results for all tested number of segments see ?Segmentation_Engine
+#' }
+#' @examples
+#' results=list()
+#' results[[1]]=Segmentation_Engine(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,
+#'                                  u=RhoneRiverAMAX$uH,nS=1)
+#' results[[2]]=Segmentation_Engine(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,
+#'                                  u=RhoneRiverAMAX$uH,nS=2)
+#' sg <- multipleSegmentation(results)
+#' @export
+multipleSegmentation<-function(results){
+  o<-new_multipleSegmentation(results)
+  return(validate_multipleSegmentation(o))
+}
+
 #***************************************************************************----
 # is functions ----
 
@@ -44,6 +76,17 @@ simpleSegmentation<-function(obs,time=1:length(obs),u=0*obs,data=NULL,
 #' @keywords internal
 is.simpleSegmentation<-function(o){
   return(class(o)=='simpleSegmentation')
+}
+
+#' multipleSegmentation tester
+#'
+#' Is an object of class 'multipleSegmentation'?
+#'
+#' @param o Object, an object.
+#' @return A logical equal to TRUE if class(o)== 'multipleSegmentation', FALSE otherwise.
+#' @keywords internal
+is.multipleSegmentation<-function(o){
+  return(class(o)=='multipleSegmentation')
 }
 
 #***************************************************************************----
@@ -82,10 +125,34 @@ new_simpleSegmentation<-function(obs,time,u,data,shifts,mcmc,DIC,origin.date){
   return(o)
 }
 
+new_multipleSegmentation<-function(results){
+  #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  # basic checks
+  stopifnot(is.list(results))
+  if(length(results)<1){
+    stop('Results list should be non-empty')
+  }
+  stopifnot(all(sapply(results,is.simpleSegmentation)))
+  # assemble object
+  DICs=sapply(results,function(x){x$DIC})
+  nS=which.min(DICs)
+  o=results[[nS]] # results for optimal number of segments
+  o$nS=nS # Add optimal number of segments
+  o$DICs=DICs # Add DICs for each number of segments
+  o$results=results # Add all partial results for all tested number of segments
+  class(o) <- 'multipleSegmentation'
+  return(o)
+}
+
 #***************************************************************************----
 # validators ----
 
 validate_simpleSegmentation<-function(x){
+  # nothing to do
+  return(x)
+}
+
+validate_multipleSegmentation<-function(x){
   # nothing to do
   return(x)
 }

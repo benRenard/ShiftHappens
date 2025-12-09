@@ -78,9 +78,9 @@ hist(res$mcmc$tau)
 # This line of code is wrapped in \dontrun{} since it relies
 # on the installation of an executable with the package RBaM.
 # See ?RBaM::downloadBaM for downloading and installing this executable.
+prior=list(RBaM::parameter(name=paste0('mu1'),init=6,prior.dist='Gaussian',prior.par=c(6,5)),
+           RBaM::parameter(name=paste0('mu2'),init=8,prior.dist='Gaussian',prior.par=c(8,2))))
 res=Segmentation_Engine(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH,
-     doQuickApprox=FALSE,nS=3,
-     mu_prior=list(parameter(name=paste0('mu1'),init=6,prior.dist='Gaussian',prior.par=c(6,5)),
-                 parameter(name=paste0('mu2'),init=8,prior.dist='Gaussian',prior.par=c(8,2))))
+     doQuickApprox=FALSE,nS=3,mu_prior=prior)
 }
 }

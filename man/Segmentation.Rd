@@ -51,7 +51,7 @@ Segmentation(
 \item{...}{other arguments passed to RBaM::BaM.}
 }
 \value{
-list with the following components:
+An object of class \code{\link[=multipleSegmentation]{multipleSegmentation()}}, containing the following fields:
 \enumerate{
 \item nS: integer, optimal number of segments (minimum DIC)
 \item DICs: real vector, DICs computed for each number of segment
@@ -64,7 +64,7 @@ list with the following components:
 }
 }
 \description{
-Segmentation procedure for an \strong{unknown} given number of segments
+Segmentation procedure for an \strong{unknown} number of segments
 }
 \examples{
 res=Segmentation(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH)

@@ -27,6 +27,8 @@ time,obs,u,I95_lower,I95_upper,period.
 If NULL, will be automatically intialised from obs,time,u.
 If provided, will supersede obs, time, u.}
 
+\item{shifts}{data frame, detected shifts (with columns tau, I95_lower and I95_upper)}
+
 \item{mcmc}{data frame, MCMC simulations}
 
 \item{DIC}{real, DIC estimation}
@@ -44,7 +46,8 @@ An object of class \code{\link[=simpleSegmentation]{simpleSegmentation()}}, cont
 }
 }
 \description{
-Creates a new instance of a 'simpleSegmentation' object
+Creates a new instance of a 'simpleSegmentation' object, used to
+store the results of a segmentation with an known number of segment
 }
 \examples{
 sg <- simpleSegmentation(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH)
