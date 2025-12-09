@@ -8,8 +8,11 @@ simpleSegmentation(
   obs,
   time = 1:length(obs),
   u = 0 * obs,
+  data = NULL,
+  shifts = data.frame(tau = numeric(0), I95_lower = numeric(0), I95_upper = numeric(0)),
   mcmc = data.frame(),
-  DIC = NA
+  DIC = NA,
+  origin.date = min(time)
 )
 }
 \arguments{
@@ -19,9 +22,16 @@ simpleSegmentation(
 
 \item{u}{real vector, uncertainty in observations (as a standard deviation)}
 
+\item{data}{data frame, data summary, should contain the following columns:
+time,obs,u,I95_lower,I95_upper,period.
+If NULL, will be automatically intialised from obs,time,u.
+If provided, will supersede obs, time, u.}
+
 \item{mcmc}{data frame, MCMC simulations}
 
 \item{DIC}{real, DIC estimation}
+
+\item{origin.date}{dates origin (useful for date conversions)}
 }
 \value{
 An object of class \code{\link[=simpleSegmentation]{simpleSegmentation()}}, containing the following fields:

@@ -7,8 +7,13 @@
 #' @param obs real vector, observations
 #' @param time real vector, time
 #' @param u real vector, uncertainty in observations (as a standard deviation)
+#' @param data data frame, data summary, should contain the following columns:
+#'     time,obs,u,I95_lower,I95_upper,period.
+#'     If NULL, will be automatically intialised from obs,time,u.
+#'     If provided, will supersede obs, time, u.
 #' @param mcmc data frame, MCMC simulations
 #' @param DIC real, DIC estimation
+#' @param origin.date dates origin (useful for date conversions)
 #' @return An object of class [simpleSegmentation()], containing the following fields:
 #' \enumerate{
 #'   \item data: data frame, all data with their respective periods after segmentation
@@ -20,9 +25,10 @@
 #' @examples
 #' sg <- simpleSegmentation(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH)
 #' @export
-simpleSegmentation<-function(obs,time=1:length(obs),u=0*obs,
-                             mcmc=data.frame(),DIC=NA){
-  o<-new_simpleSegmentation(obs,time,u,mcmc,DIC)
+simpleSegmentation<-function(obs,time=1:length(obs),u=0*obs,data=NULL,
+                             shifts=data.frame(tau=numeric(0),I95_lower=numeric(0),I95_upper=numeric(0)),
+                             mcmc=data.frame(),DIC=NA,origin.date=min(time)){
+  o<-new_simpleSegmentation(obs,time,u,data,shifts,mcmc,DIC,origin.date)
   return(validate_simpleSegmentation(o))
 }
 
@@ -43,7 +49,7 @@ is.simpleSegmentation<-function(o){
 #***************************************************************************----
 # internal constructors ----
 
-new_simpleSegmentation<-function(obs,time,u,mcmc,DIC){
+new_simpleSegmentation<-function(obs,time,u,data,shifts,mcmc,DIC,origin.date){
   #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   # basic checks
   stopifnot(is.numeric(obs))
@@ -52,19 +58,26 @@ new_simpleSegmentation<-function(obs,time,u,mcmc,DIC){
   stopifnot(is.vector(time))
   stopifnot(is.numeric(u))
   stopifnot(is.vector(u))
+  if(!is.null(data)){stopifnot(is.data.frame(data))}
+  stopifnot(is.data.frame(shifts))
   stopifnot(is.data.frame(mcmc))
   stopifnot(is.na(DIC) | is.numeric(DIC))
+  stopifnot(is.numeric(origin.date))
   if(is.null(check_equal_length(obs,time,u))){
     stop('The observations, time and uncertainty do not have the same length')
   }
   # assemble object
   o=list()
-  o$data=data.frame(time=time,obs=obs,u=u,
+  if(is.null(data)){
+    o$data=data.frame(time=time,obs=obs,u=u,
                       I95_lower=obs-1.96*u,I95_upper=obs+1.96*u,period=1)
-  o$shifts=data.frame(tau=numeric(0),I95_lower=numeric(0),I95_upper=numeric(0))
+  } else {
+    o$data=data
+  }
+  o$shifts=shifts
   o$mcmc=mcmc
   o$DIC=DIC
-  o$origin.date=min(time)
+  o$origin.date=origin.date
   class(o) <- 'simpleSegmentation'
   return(o)
 }

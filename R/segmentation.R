@@ -298,8 +298,9 @@ Segmentation_Engine <- function(obs,
       data$period = unlist(periods)
     }
     # Assemble output object
-    out=list(data=data,shifts=shift,mcmc=mcmc.segm,
-             DIC=mcmc.DIC[1,2],origin.date=origin.date)
+    out=simpleSegmentation(obs=obs,time=time,u=u,
+                           data=data,shifts=shift,mcmc=mcmc.segm,
+                           DIC=mcmc.DIC[1,2],origin.date=origin.date)
   }
   # Transform back all time into original units
   if(!numeric.check){out=transformDatesInOutput(out,origin.date)}
