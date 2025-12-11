@@ -2,20 +2,8 @@
 #'
 #' Segmentation procedure for an \strong{unknown} number of segments
 #'
-#' @param obs real vector, observations
-#' @param time real vector, time in POSIXct, string or numeric format
-#' @param u real vector, uncertainty in observations (as a standard deviation)
+#' @inheritParams Segmentation_Engine
 #' @param nSmax integer, maximum number of segments to assess
-#' @param nMin integer, minimum number of observations by segment
-#' @param nCycles integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
-#' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
-#' @param nSlim integer, MCMC slim step
-#' @param temp.folder directory, temporary directory to write computations
-#' @param mu_prior list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)
-#' @param doQuickApprox logical, use quick approximation? see ?Segmentation_quickApprox
-#' @param varShift logical, allow for a shifting variance? Only used when doQuickApprox=TRUE.
-#' @param alpha real in (0;1), type-I error level of the underlying step-change test. Only used when doQuickApprox=TRUE.
-#' @param ... other arguments passed to RBaM::BaM.
 #'
 #' @inherit multipleSegmentation return
 #'
@@ -37,13 +25,13 @@ Segmentation <- function(obs,
                          time=1:length(obs),
                          u=0*obs,
                          nSmax=2,
+                         doQuickApprox=TRUE,
                          nMin=ifelse(doQuickApprox,3,1),
-                         nCycles=100,
-                         burn=0.5,
-                         nSlim=max(nCycles/10,1),
+                         nSim=500,varShift=FALSE,alpha=0.1,
+                         mcmc_options=RBaM::mcmcOptions(),
+                         mcmc_cooking=RBaM::mcmcCooking(),
                          temp.folder=file.path(tempdir(),'BaM'),
-                         mu_prior = list(),doQuickApprox=TRUE,
-                         varShift=FALSE,alpha=0.1,...){
+                         mu_prior = list(),...){
 
   if(nSmax<=0){
     stop('Maximum number of segments should be larger than 0',call.=FALSE)
@@ -72,7 +60,9 @@ Segmentation <- function(obs,
       }else{
         mu_args <- mu_prior
       }
-      res[[i]] <- Segmentation_Engine(obs,time,u,nS,nMin,nCycles,burn,nSlim,temp.folder,mu_prior=mu_args,
+      res[[i]] <- Segmentation_Engine(obs=obs,time=time,u=u,nS=nS,nMin=nMin,
+                                      mcmc_options=mcmc_options,mcmc_cooking=mcmc_cooking,
+                                      temp.folder=temp.folder,mu_prior=mu_args,
                                       doQuickApprox=quick,varShift=varShift,alpha=alpha,...)
       DICs [i] <- res[[i]]$DIC
     }
@@ -89,15 +79,19 @@ Segmentation <- function(obs,
 #' @param time vector, time in POSIXct, string or numeric format
 #' @param u real vector, uncertainty in observations (as a standard deviation)
 #' @param nS integer, number of segments
-#' @param nMin integer, minimum number of observations by segment
-#' @param nCycles integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
-#' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
-#' @param nSlim integer, MCMC slim step
-#' @param temp.folder directory, temporary directory to write computations
-#' @param mu_prior list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)
 #' @param doQuickApprox logical, use quick approximation? see ?Segmentation_quickApprox
+#' @param nMin integer, minimum number of observations by segment
+#' @param nSim integer, number of Monte-Carlo simulated values for shift times. Only used when doQuickApprox=TRUE.
 #' @param varShift logical, allow for a shifting variance? Only used when doQuickApprox=TRUE.
 #' @param alpha real in (0;1), type-I error level of the underlying step-change test. Only used when doQuickApprox=TRUE.
+#' @param mcmc_options mcmcOptions object, options used to generate MCMC samples (e.g. size and adaption tunings), see ?RBaM::mcmcOptions.
+#'     Only used when doQuickApprox=FALSE.
+#' @param mcmc_cooking mcmcCooking object, options used to post-process MCMC samples (e.g. burn and slice), see ?RBaM::mcmcCooking.
+#'     Only used when doQuickApprox=FALSE.
+#' @param temp.folder directory, temporary directory to write BaM computations.
+#'     Only used when doQuickApprox=FALSE.
+#' @param mu_prior list, object describing prior knowledge on the mean of residuals for each segment.
+#'     Only used when doQuickApprox=FALSE.
 #' @param ... other arguments passed to RBaM::BaM.
 #'
 #' @inherit simpleSegmentation return
@@ -128,13 +122,13 @@ Segmentation_Engine <- function(obs,
                                 time=1:length(obs),
                                 u=0*obs,
                                 nS=2,
+                                doQuickApprox=TRUE,
                                 nMin=ifelse(doQuickApprox,3,1),
-                                nCycles=100,
-                                burn=0.5,
-                                nSlim=max(nCycles/10,1),
+                                nSim=500,varShift=FALSE,alpha=0.1,
+                                mcmc_options=RBaM::mcmcOptions(),
+                                mcmc_cooking=RBaM::mcmcCooking(),
                                 temp.folder=file.path(tempdir(),'BaM'),
-                                mu_prior=list(NULL),doQuickApprox=TRUE,
-                                varShift=FALSE,alpha=0.1,...){
+                                mu_prior=list(NULL),...){
 
   if(length(obs)<2)stop('At least 2 observations are required',call.=FALSE)
   if(length(obs)<nS)stop('Number of observations is lower than the number of segments',call.=FALSE)
@@ -172,7 +166,6 @@ Segmentation_Engine <- function(obs,
     if(hasPrior){
       warning('Quick approximation does not handle prior information. The provided priors will be ignored.')
     }
-    nSim=as.integer(100*nCycles*burn/nSlim)
     out=Segmentation_quickApprox(obs=obs,time=time,u=u,nS=nS,nMin=nMin,
                                  nSim=nSim,varShift=varShift,alpha=alpha)
   } else {
@@ -224,9 +217,6 @@ Segmentation_Engine <- function(obs,
                        Yu=data.frame(u),
                        data.dir=temp.folder)
 
-    mcmc_temp=RBaM::mcmcOptions(nCycles=nCycles)
-    cook_temp=RBaM::mcmcCooking(burn=burn,nSlim=nSlim)
-
     remnantInit=stats::sd(obs)
     if(is.na(remnantInit)){ # happens when nObs=1
       remnantInit=abs(mean(obs))
@@ -241,11 +231,11 @@ Segmentation_Engine <- function(obs,
     RBaM::BaM(mod=mod,
               data=data,
               workspace=temp.folder,
-              mcmc=mcmc_temp,
-              cook = cook_temp,
+              mcmc=mcmc_options,
+              cook = mcmc_cooking,
               remnant = remnant_prior,...)
 
-    mcmc.segm    <- utils::read.table(file=file.path(temp.folder,"Results_Cooking.txt"),header=TRUE)
+    mcmc.segm    <- utils::read.table(file=file.path(temp.folder,mcmc_cooking$result.fname),header=TRUE)
     mcmc.DIC     <- utils::read.table(file=file.path(temp.folder,"Results_DIC.txt"),header=FALSE)
     resid.segm   <- utils::read.table(file=file.path(temp.folder,"Results_Residuals.txt"),header=TRUE)
 

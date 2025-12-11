@@ -14,15 +14,15 @@ Segmentation_Engine(
   time = 1:length(obs),
   u = 0 * obs,
   nS = 2,
-  nMin = ifelse(doQuickApprox, 3, 1),
-  nCycles = 100,
-  burn = 0.5,
-  nSlim = max(nCycles/10, 1),
-  temp.folder = file.path(tempdir(), "BaM"),
-  mu_prior = list(NULL),
   doQuickApprox = TRUE,
+  nMin = ifelse(doQuickApprox, 3, 1),
+  nSim = 500,
   varShift = FALSE,
   alpha = 0.1,
+  mcmc_options = RBaM::mcmcOptions(),
+  mcmc_cooking = RBaM::mcmcCooking(),
+  temp.folder = file.path(tempdir(), "BaM"),
+  mu_prior = list(NULL),
   ...
 )
 }
@@ -35,23 +35,27 @@ Segmentation_Engine(
 
 \item{nS}{integer, number of segments}
 
+\item{doQuickApprox}{logical, use quick approximation? see ?Segmentation_quickApprox}
+
 \item{nMin}{integer, minimum number of observations by segment}
 
-\item{nCycles}{integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles}
-
-\item{burn}{real between 0 (included) and 1 (excluded), MCMC burning factor}
-
-\item{nSlim}{integer, MCMC slim step}
-
-\item{temp.folder}{directory, temporary directory to write computations}
-
-\item{mu_prior}{list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)}
-
-\item{doQuickApprox}{logical, use quick approximation? see ?Segmentation_quickApprox}
+\item{nSim}{integer, number of Monte-Carlo simulated values for shift times. Only used when doQuickApprox=TRUE.}
 
 \item{varShift}{logical, allow for a shifting variance? Only used when doQuickApprox=TRUE.}
 
 \item{alpha}{real in (0;1), type-I error level of the underlying step-change test. Only used when doQuickApprox=TRUE.}
+
+\item{mcmc_options}{mcmcOptions object, options used to generate MCMC samples (e.g. size and adaption tunings), see ?RBaM::mcmcOptions.
+Only used when doQuickApprox=FALSE.}
+
+\item{mcmc_cooking}{mcmcCooking object, options used to post-process MCMC samples (e.g. burn and slice), see ?RBaM::mcmcCooking.
+Only used when doQuickApprox=FALSE.}
+
+\item{temp.folder}{directory, temporary directory to write BaM computations.
+Only used when doQuickApprox=FALSE.}
+
+\item{mu_prior}{list, object describing prior knowledge on the mean of residuals for each segment.
+Only used when doQuickApprox=FALSE.}
 
 \item{...}{other arguments passed to RBaM::BaM.}
 }
