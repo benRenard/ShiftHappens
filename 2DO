@@ -6,6 +6,7 @@ data: OK
 
 Segmentation: consider creating a class for the results
 Consider removing unnecesaary fields, e.g. plot, segments, data.p
+rename Recursive_Segmentation to Segmentation_Recursive
 
 Catalog: OK, but review link with equations_RC_recessions
 
