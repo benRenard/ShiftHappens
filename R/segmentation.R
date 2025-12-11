@@ -1,3 +1,21 @@
+obs=c(RhoneRiverAMAX$H,RhoneRiverAMAX$H)
+time=as.POSIXct(24*3600*(1:length(obs))) #1:length(obs) #
+u=0*obs
+nSmax=2
+doQuickApprox=TRUE
+nMin=ifelse(doQuickApprox,3,1)
+nSim=500;varShift=FALSE;alpha=0.1
+mcmc_options=RBaM::mcmcOptions()
+mcmc_cooking=RBaM::mcmcCooking()
+temp.folder=file.path(tempdir(),'BaM')
+mu_prior = list()
+
+foo=Segmentation_Recursive(obs,time)
+foo$tree
+foo$shifts
+plot(foo$data$obs,col=foo$data$period)
+plot(foo$data$time,foo$data$obs,col=foo$data$period)
+
 Segmentation_Recursive <- function(obs,
                                    time=1:length(obs),
                                    u=0*obs,
@@ -40,7 +58,7 @@ Segmentation_Recursive <- function(obs,
                                           nSmax=nSmax,doQuickApprox=doQuickApprox,nMin=nMin,
                                           nSim=nSim,varShift=varShift,alpha=alpha,
                                           mcmc_options=mcmc_options,mcmc_cooking=mcmc_cooking,
-                                          temp.folder,mu_prior=mu_prior,...)
+                                          temp.folder,mu_prior=mu_prior) #,...)
       }
       # Save results for this node
       allRes[[k]]=partial.segmentation
@@ -103,22 +121,25 @@ Segmentation_Recursive <- function(obs,
     rownames(shift) <- NULL
     # Transform uncertainty on the shift in POSIXct format
     origin.date=allRes[[1]]$origin.date
-    if(all(is.numeric(shift$tau)!=TRUE)){
+    if(all(!is.numeric(time))){
       transformed.shift <- c()
       for(i in 1:NROW(shift)){
-        transformed.shift.p <- data.frame(lapply(shift[i,c(1,3)], function(column) {
+        transformed.shift.p <- data.frame(lapply(shift[i,1:3], function(column) {
           numeric_to_time(d=column,origin.date=origin.date)
         }))
         transformed.shift=rbind(transformed.shift,transformed.shift.p)
       }
-      shift[,c(1,3)]=transformed.shift
+      shift[,1:3]=transformed.shift
     }
     shift <- shift[order(shift$tau),]
   } else {
     shift=NULL
   }
-  # 2DO: review return object + problem sorting returned data
-  return(list(nS=max(data$period),data=data,shifts=shift,tree=tree))
+  # Tidy up returned data
+  data=data[order(data$time),] # sort
+  data$period=c(1,1+cumsum(diff(data$period)!=0))
+  # 2DO: review return object
+  return(list(nS=max(data$period),data=data,shifts=shift,tree=tree,results=allRes))
 }
 
 #' Segmentation
