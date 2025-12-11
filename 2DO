@@ -4,9 +4,10 @@ utilities_public: OK
 
 data: OK
 
-Segmentation: consider creating a class for the results
-Consider removing unnecesaary fields, e.g. plot, segments, data.p
-rename Recursive_Segmentation to Segmentation_Recursive
+Segmentation: 
+[DONE] consider creating a class for the results
+[DONE] Consider removing unnecesaary fields, e.g. plot, segments, data.p
+[DONE] rename Recursive_Segmentation to Segmentation_Recursive
 
 Catalog: OK, but review link with equations_RC_recessions
 
@@ -24,8 +25,5 @@ Plots: a lot of simplification/factorization is possible, by taking advantage of
 
 Needs a BaRatin_tools module? or can it stay part of curve_tools? -> No, make a BaRatin_tools, including in particular the fitRC_BaRatinXXX functions
 
-
-
-
-Everywhere: replace MCMC options by a proper RBaM::mcmcOptions object
+[DONE] Everywhere: replace MCMC options by proper RBaM::mcmcOptions and RBaM::mcmcCooking objects
 

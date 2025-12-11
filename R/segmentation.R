@@ -1,3 +1,126 @@
+Segmentation_Recursive <- function(obs,
+                                   time=1:length(obs),
+                                   u=0*obs,
+                                   nSmax=2,
+                                   doQuickApprox=TRUE,
+                                   nMin=ifelse(doQuickApprox,3,1),
+                                   nSim=500,varShift=FALSE,alpha=0.1,
+                                   mcmc_options=RBaM::mcmcOptions(),
+                                   mcmc_cooking=RBaM::mcmcCooking(),
+                                   temp.folder=file.path(tempdir(),'BaM'),
+                                   mu_prior = list(),...){
+  if(length(obs)<2){
+    stop('At least 2 observations are required',call.=FALSE)
+  }
+  # Initialization
+  allRes=list() # store segmentation results for all nodes in a sequential list
+  k=0 # Main counter used to control indices in allRes
+  tree=data.frame() # store tree structure (parents - children relationship)
+  p=1 # Auxiliary counter needed to keep track of children / parents indices
+  level=0 # Recursion level. The tree is created level-by-level rather than branch-by-branch
+  X=list(obs) # List of all nodes (each corresponding to a subseries of x) to be segmented at this level. Start with a unique node corresponding to the whole series
+  TIME=list(time) # List of corresponding times
+  U=list(u) # List of corresponding uncertainties
+  indices=c(1) # Vector containing the indices of each node - same size as X
+  parents=c(0) # Vector containing the indices of the parents of each node - same size as X
+  continue=TRUE # Logical determining whether recursion should continue
+
+  while(continue){
+    level=level+1 # Increment recursion level
+    nX=length(X) # Number of nodes at this level
+    keepgoing=rep(NA,nX) # Should recursion continue for each node?
+    newX=newTIME=newU=newIndices=newParents=c() # Will be used to update subseries, indices and parents at the end of each recursion level
+    m=0 # Local counter used to control indices in the 4 vectors above => reset to 0 at each new level of the recursion
+    for(j in 1:nX){ # Loop on each node
+      k=k+1 # Increment main counter
+      if(NROW(X[[j]])<nSmax*nMin){ # Can't segment, return default result
+        partial.segmentation=simpleSegmentation(time=TIME[[j]],obs=X[[j]],u=U[[j]])
+      } else { # Apply segmentation to subseries stored in node X[[j]]
+        partial.segmentation=Segmentation(obs=X[[j]],time=TIME[[j]],u=U[[j]],
+                                          nSmax=nSmax,doQuickApprox=doQuickApprox,nMin=nMin,
+                                          nSim=nSim,varShift=varShift,alpha=alpha,
+                                          mcmc_options=mcmc_options,mcmc_cooking=mcmc_cooking,
+                                          temp.folder,mu_prior=mu_prior,...)
+      }
+      # Save results for this node
+      allRes[[k]]=partial.segmentation
+      # Save optimal number of segments
+      nSopt=partial.segmentation$nS
+      # Update recursion tree
+      tree=rbind(tree,data.frame(indx=k,level=level,parent=parents[j],nS=nSopt))
+      # This was the trickiest part: keeping track of indices and parents
+      keepgoing[j]=nSopt>1 # if nS=1, segmentation will not continue for this node which is hence terminal
+      if(keepgoing[j]){ # Save results for segmentation at next level
+        for(i in 1:nSopt){ # Loop on each segment detected for the current node
+          p=p+1 # Increment auxiliary counter
+          m=m+1 # Increment local counter
+          mask=partial.segmentation$results[[nSopt]]$data$period==i
+          newX[[m]]=partial.segmentation$results[[nSopt]]$data$obs[mask] # Save ith segment (on a total of nS)
+          newTIME[[m]]=partial.segmentation$results[[nSopt]]$data$time[mask] # Save corresponding times
+          newU[[m]]=partial.segmentation$results[[nSopt]]$data$u[mask] # Save corresponding uncertainty
+          newParents[m]=indices[j] # At next level, the parent of this segment will be the index of current node
+          newIndices[m]=p # At next level, the index of this segment will be p
+        }
+      }
+    }
+    # Check if recursion should continue at all, i.e. if at least one node is not terminal
+    if(all(keepgoing==FALSE)) continue=FALSE
+    # Update list of nodes to be further segmented at next level + parents and indices
+    X=newX
+    TIME=newTIME
+    U=newU
+    parents=newParents
+    indices=newIndices
+  }
+  # Get terminal nodes
+  terminal=which(tree$nS==1)
+  # Assemble final dataset with period column by using information from terminal nodes
+  data <- c()
+  for(i in 1:length(terminal)){
+    data.stable.p=allRes[[terminal[i]]]$results[[1]]$data #Save data from stable period
+    node = data.frame(time=data.stable.p$time,obs=data.stable.p$obs,u=data.stable.p$u,
+                      I95_lower=data.stable.p$obs+stats::qnorm(0.025)*data.stable.p$u,
+                      I95_upper=data.stable.p$obs+stats::qnorm(0.975)*data.stable.p$u,
+                      period = rep(i,NROW(data.stable.p)))
+    data = rbind(data,node)
+  }
+  # Get info from nodes with shifts
+  hasShift=which(tree$nS!=1)
+  if(length(hasShift)>0){
+    shift <- c()
+    for(i in 1:length(hasShift)){
+      nSopt.p = allRes[[hasShift[i]]]$nS
+      results.p = allRes[[hasShift[i]]]$results
+      shift.time.p=data.frame(c(results.p[[nSopt.p]]$shifts$tau))
+      for(j in 1:(nSopt.p-1)){
+        shift.time.p.unc=data.frame(tau=shift.time.p[j,],
+                                    I95_lower=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],probs=c(0.025)),
+                                    I95_upper=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],probs=c(0.975)),
+                                    id_iteration=hasShift[[i]])
+        shift <- rbind(shift,shift.time.p.unc)
+      }
+    }
+    rownames(shift) <- NULL
+    # Transform uncertainty on the shift in POSIXct format
+    origin.date=allRes[[1]]$origin.date
+    if(all(is.numeric(shift$tau)!=TRUE)){
+      transformed.shift <- c()
+      for(i in 1:NROW(shift)){
+        transformed.shift.p <- data.frame(lapply(shift[i,c(1,3)], function(column) {
+          numeric_to_time(d=column,origin.date=origin.date)
+        }))
+        transformed.shift=rbind(transformed.shift,transformed.shift.p)
+      }
+      shift[,c(1,3)]=transformed.shift
+    }
+    shift <- shift[order(shift$tau),]
+  } else {
+    shift=NULL
+  }
+  # 2DO: review return object + problem sorting returned data
+  return(list(nS=max(data$period),data=data,shifts=shift,tree=tree))
+}
+
 #' Segmentation
 #'
 #' Segmentation procedure for an \strong{unknown} number of segments
