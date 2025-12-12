@@ -36,7 +36,7 @@ Segmentation_quickApprox(
 An object of class \code{\link[=simpleSegmentation]{simpleSegmentation()}}, containing the following fields:
 \enumerate{
 \item data: data frame, all data with their respective periods after segmentation
-\item shifts: data frame, all detected shift times in numeric or POSIXct format in UTC
+\item shifts: data frame, all detected shift times and their uncertainty in numeric or POSIXct format in UTC
 \item mcmc: data frame, MCMC simulations
 \item DIC: real, DIC estimation
 \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.

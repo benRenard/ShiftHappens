@@ -19,7 +19,7 @@
 #' @return An object of class [simpleSegmentation()], containing the following fields:
 #' \enumerate{
 #'   \item data: data frame, all data with their respective periods after segmentation
-#'   \item shifts: data frame, all detected shift times in numeric or POSIXct format in UTC
+#'   \item shifts: data frame, all detected shift times and their uncertainty in numeric or POSIXct format in UTC
 #'   \item mcmc: data frame, MCMC simulations
 #'   \item DIC: real, DIC estimation
 #'   \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
@@ -38,14 +38,14 @@ simpleSegmentation<-function(obs,time=1:length(obs),u=0*obs,data=NULL,
 #'
 #' Creates a new instance of a 'multipleSegmentation' object, used to
 #' store the results of a segmentation with an unknown number of segment.
-#' @param results vector of 'simpleSegmentation' objects, segmentation results for each tested number of segments
+#' @param results list, vector of 'simpleSegmentation' objects, segmentation results for each tested number of segments
 #'
 #' @return An object of class [multipleSegmentation()], containing the following fields:
 #' \enumerate{
 #'   \item nS: integer, optimal number of segments (minimum DIC)
 #'   \item DICs: real vector, DICs computed for each number of segment
 #'   \item data: data frame, all data with their respective periods after segmentation (for optimal nS)
-#'   \item shifts: data frame, all detected shift time in numeric or POSIXct format in UTC (for optimal nS)
+#'   \item shifts: data frame, all detected shift times and their uncertainty in numeric or POSIXct format in UTC (for optimal nS)
 #'   \item mcmc: data frame, MCMC simulations (for optimal nS)
 #'   \item DIC: real, DIC estimation (for optimal nS)
 #'   \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
@@ -62,6 +62,39 @@ simpleSegmentation<-function(obs,time=1:length(obs),u=0*obs,data=NULL,
 multipleSegmentation<-function(results){
   o<-new_multipleSegmentation(results)
   return(validate_multipleSegmentation(o))
+}
+
+#' recursiveSegmentation object constructor.
+#'
+#' Creates a new instance of a 'recursiveSegmentation' object, used to
+#' store the results of a recursive segmentation with an unknown number of segment.
+#' @param data data frame, data summary.
+#' @param shifts data frame, detected shifts (with columns tau, I95_lower and I95_upper)
+#' @param tree data frame, recursion tree.
+#' @param origin.date dates origin (useful for date conversions)
+#' @param results list, vector of 'multipleSegmentation' objects, segmentation results at each step of the recursion
+#'
+#' @return An object of class [recursiveSegmentation()], containing the following fields:
+#' \enumerate{
+#'   \item nS: integer, final number of segments
+#'   \item data: data frame, all data with their respective periods after segmentation
+#'   \item shifts: data frame, all detected shift times and their uncertainty in numeric or POSIXct format in UTC
+#'   \item tree: data frame, recursion tree.
+#'   \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
+#'   \item results: list, intermediate results at each stage of the recursion.
+#' }
+#' @examples
+#' results=list()
+#' results[[1]]=Segmentation_Engine(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,
+#'                                  u=RhoneRiverAMAX$uH,nS=1)
+#' results[[2]]=Segmentation_Engine(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,
+#'                                  u=RhoneRiverAMAX$uH,nS=2)
+#' sg <- recursiveSegmentation()
+#' @export
+recursiveSegmentation<-function(data=data.frame(),shifts=data.frame(),tree=data.frame(),
+                                origin.date=NULL,results=list()){
+  o<-new_recursiveSegmentation(data,shifts,tree,origin.date,results)
+  return(validate_recursiveSegmentation(o))
 }
 
 #***************************************************************************----
@@ -89,6 +122,16 @@ is.multipleSegmentation<-function(o){
   return(class(o)=='multipleSegmentation')
 }
 
+#' recursiveSegmentation tester
+#'
+#' Is an object of class 'recursiveSegmentation'?
+#'
+#' @param o Object, an object.
+#' @return A logical equal to TRUE if class(o)== 'recursiveSegmentation', FALSE otherwise.
+#' @keywords internal
+is.recursiveSegmentation<-function(o){
+  return(class(o)=='recursiveSegmentation')
+}
 #***************************************************************************----
 # internal constructors ----
 
@@ -105,7 +148,6 @@ new_simpleSegmentation<-function(obs,time,u,data,shifts,mcmc,DIC,origin.date){
   stopifnot(is.data.frame(shifts))
   stopifnot(is.data.frame(mcmc))
   stopifnot(is.na(DIC) | is.numeric(DIC))
-  stopifnot(is.numeric(origin.date))
   if(is.null(check_equal_length(obs,time,u))){
     stop('The observations, time and uncertainty do not have the same length')
   }
@@ -144,6 +186,20 @@ new_multipleSegmentation<-function(results){
   return(o)
 }
 
+new_recursiveSegmentation<-function(data,shifts,tree,origin.date,results){
+  #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  # basic checks
+  stopifnot(is.data.frame(data))
+  stopifnot(is.data.frame(shifts))
+  stopifnot(is.data.frame(tree))
+  stopifnot(is.list(results))
+  # assemble object
+  o=list(nS=NROW(shifts)+1,data=data,shifts=shifts,tree=tree,
+         origin.date=origin.date,results=results)
+  class(o) <- 'recursiveSegmentation'
+  return(o)
+}
+
 #***************************************************************************----
 # validators ----
 
@@ -153,6 +209,11 @@ validate_simpleSegmentation<-function(x){
 }
 
 validate_multipleSegmentation<-function(x){
+  # nothing to do
+  return(x)
+}
+
+validate_recursiveSegmentation<-function(x){
   # nothing to do
   return(x)
 }

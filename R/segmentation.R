@@ -1,21 +1,24 @@
-obs=c(RhoneRiverAMAX$H,RhoneRiverAMAX$H)
-time=as.POSIXct(24*3600*(1:length(obs))) #1:length(obs) #
-u=0*obs
-nSmax=2
-doQuickApprox=TRUE
-nMin=ifelse(doQuickApprox,3,1)
-nSim=500;varShift=FALSE;alpha=0.1
-mcmc_options=RBaM::mcmcOptions()
-mcmc_cooking=RBaM::mcmcCooking()
-temp.folder=file.path(tempdir(),'BaM')
-mu_prior = list()
-
-foo=Segmentation_Recursive(obs,time)
-foo$tree
-foo$shifts
-plot(foo$data$obs,col=foo$data$period)
-plot(foo$data$time,foo$data$obs,col=foo$data$period)
-
+#' Recursive Segmentation
+#'
+#' Recursive segmentation procedure for an \strong{unknown} number of segments
+#'
+#' @inheritParams Segmentation
+#'
+#' @inherit recursiveSegmentation return
+#'
+#' @examples
+#' obs=RhoneRiverAMAX$H
+#' res=Segmentation_Recursive(obs=obs)
+#' res$shifts
+#' res$tree
+#' plot(res$data$obs,col=res$data$period)
+#' # Create an artificial series with more changes to see recursion in action
+#' obs=c(RhoneRiverAMAX$H,RhoneRiverAMAX$H)
+#' res=Segmentation_Recursive(obs=obs)
+#' res$shifts
+#' res$tree
+#' plot(res$data$obs,col=res$data$period)
+#' @export
 Segmentation_Recursive <- function(obs,
                                    time=1:length(obs),
                                    u=0*obs,
@@ -139,7 +142,9 @@ Segmentation_Recursive <- function(obs,
   data=data[order(data$time),] # sort
   data$period=c(1,1+cumsum(diff(data$period)!=0))
   # 2DO: review return object
-  return(list(nS=max(data$period),data=data,shifts=shift,tree=tree,results=allRes))
+  out=recursiveSegmentation(data=data,shifts=shift,tree=tree,
+                            origin.date=origin.date,results=allRes)
+  return(out)
 }
 
 #' Segmentation
@@ -152,7 +157,7 @@ Segmentation_Recursive <- function(obs,
 #' @inherit multipleSegmentation return
 #'
 #' @examples
-#' res=Segmentation(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH)
+#' res=Segmentation(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Date,u=RhoneRiverAMAX$uH)
 #' res$shifts
 #' res$DICs
 #' hist(res$mcmc$tau)
@@ -655,30 +660,13 @@ quickApprox_getThetaOnly <- function(tau,time,obs,u,varShift){
 #' @keywords internal
 transformDatesInOutput <- function(out,origin.date){
   # Data time (summary)
-  out$summary$data$time = numeric_to_time(d=out$summary$data$time,origin.date = origin.date)
-  # time series indexed by number of segments identified
-  if(is.list(out$data.p$time.p)==T){
-    for(i in 1:length(out$data.p$time.p)){
-      out$data.p$time.p[[i]] =  numeric_to_time(d=out$data.p$time.p[[i]],origin.date = origin.date)
-    }
-  }else{
-    out$data.p$time.p = numeric_to_time(d=out$data.p$time.p,origin.date=origin.date)
-  }
+  out$data$time = numeric_to_time(d=out$data$time,origin.date = origin.date)
   # Rating shift time summary
-  if(all(out$summary$shift$tau!= 0)){
+  if(all(out$shifts$tau!= 0)){
     # Transform all time in POSIXct format
-    out$summary$shift <- data.frame(lapply(out$summary$shift, function(column) {
+    out$shifts <- data.frame(lapply(out$shifts, function(column) {
       numeric_to_time(d=column,origin.date=origin.date)
     }))
-  }
-  # Tau in input date format
-  out$tau=out$summary$shift$tau
-  # Transform density data in POSIXct format if necessary
-  if(NROW(out$summary$shift)>0){
-    out$plot$density.tau$Value <- numeric_to_time(d=out$plot$density.tau$Value,origin.date=origin.date)
-    out$plot$density.inc.tau$tau_lower_inc <- numeric_to_time(d=out$plot$density.inc.tau$tau_lower_inc,origin.date = origin.date)
-    out$plot$density.inc.tau$tau_upper_inc <- numeric_to_time(d=out$plot$density.inc.tau$tau_upper_inc,origin.date = origin.date)
-    out$plot$density.inc.tau$taU_MAP <- numeric_to_time(d=out$plot$density.inc.tau$taU_MAP,origin.date=origin.date)
   }
   out$origin.date=origin.date
   return(out)

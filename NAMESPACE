@@ -2,8 +2,10 @@
 
 export(Segmentation)
 export(Segmentation_Engine)
+export(Segmentation_Recursive)
 export(Segmentation_quickApprox)
 export(multipleSegmentation)
+export(recursiveSegmentation)
 export(simpleSegmentation)
 import(lubridate)
 importFrom(RBaM,BaM)

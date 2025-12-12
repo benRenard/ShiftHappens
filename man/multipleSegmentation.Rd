@@ -7,7 +7,7 @@
 multipleSegmentation(results)
 }
 \arguments{
-\item{results}{vector of 'simpleSegmentation' objects, segmentation results for each tested number of segments}
+\item{results}{list, vector of 'simpleSegmentation' objects, segmentation results for each tested number of segments}
 }
 \value{
 An object of class \code{\link[=multipleSegmentation]{multipleSegmentation()}}, containing the following fields:
@@ -15,7 +15,7 @@ An object of class \code{\link[=multipleSegmentation]{multipleSegmentation()}}, 
 \item nS: integer, optimal number of segments (minimum DIC)
 \item DICs: real vector, DICs computed for each number of segment
 \item data: data frame, all data with their respective periods after segmentation (for optimal nS)
-\item shifts: data frame, all detected shift time in numeric or POSIXct format in UTC (for optimal nS)
+\item shifts: data frame, all detected shift times and their uncertainty in numeric or POSIXct format in UTC (for optimal nS)
 \item mcmc: data frame, MCMC simulations (for optimal nS)
 \item DIC: real, DIC estimation (for optimal nS)
 \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
