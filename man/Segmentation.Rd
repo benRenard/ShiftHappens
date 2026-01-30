@@ -75,6 +75,9 @@ res=Segmentation(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Date,u=RhoneRiverAMAX$
 res$shifts
 res$DICs
 hist(res$mcmc$tau)
+# Transform tau values from numeric to date/time format
+tau_date=numeric_to_time(res$mcmc$tau,origin.date=res$origin.date)
+plot(tau_date)
 # Segmentation using BaM, allowing more than 2 segments
 \dontrun{
 # This line of code is wrapped in \dontrun{} since it relies

@@ -69,8 +69,7 @@ An object of class \code{\link[=recursiveSegmentation]{recursiveSegmentation()}}
 Recursive segmentation procedure for an \strong{unknown} number of segments
 }
 \examples{
-obs=RhoneRiverAMAX$H
-res=Segmentation_Recursive(obs=obs)
+res=Segmentation_Recursive(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Date)
 res$shifts
 res$tree
 plot(res$data$obs,col=res$data$period)

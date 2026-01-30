@@ -84,11 +84,6 @@ multipleSegmentation<-function(results){
 #'   \item results: list, intermediate results at each stage of the recursion.
 #' }
 #' @examples
-#' results=list()
-#' results[[1]]=Segmentation_Engine(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,
-#'                                  u=RhoneRiverAMAX$uH,nS=1)
-#' results[[2]]=Segmentation_Engine(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,
-#'                                  u=RhoneRiverAMAX$uH,nS=2)
 #' sg <- recursiveSegmentation()
 #' @export
 recursiveSegmentation<-function(data=data.frame(),shifts=data.frame(),tree=data.frame(),

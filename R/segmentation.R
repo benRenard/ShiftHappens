@@ -7,8 +7,7 @@
 #' @inherit recursiveSegmentation return
 #'
 #' @examples
-#' obs=RhoneRiverAMAX$H
-#' res=Segmentation_Recursive(obs=obs)
+#' res=Segmentation_Recursive(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Date)
 #' res$shifts
 #' res$tree
 #' plot(res$data$obs,col=res$data$period)
@@ -61,7 +60,7 @@ Segmentation_Recursive <- function(obs,
                                           nSmax=nSmax,doQuickApprox=doQuickApprox,nMin=nMin,
                                           nSim=nSim,varShift=varShift,alpha=alpha,
                                           mcmc_options=mcmc_options,mcmc_cooking=mcmc_cooking,
-                                          temp.folder,mu_prior=mu_prior) #,...)
+                                          temp.folder,mu_prior=mu_prior,...)
       }
       # Save results for this node
       allRes[[k]]=partial.segmentation
@@ -112,28 +111,10 @@ Segmentation_Recursive <- function(obs,
     for(i in 1:length(hasShift)){
       nSopt.p = allRes[[hasShift[i]]]$nS
       results.p = allRes[[hasShift[i]]]$results
-      shift.time.p=data.frame(c(results.p[[nSopt.p]]$shifts$tau))
-      for(j in 1:(nSopt.p-1)){
-        shift.time.p.unc=data.frame(tau=shift.time.p[j,],
-                                    I95_lower=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],probs=c(0.025)),
-                                    I95_upper=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],probs=c(0.975)),
-                                    id_iteration=hasShift[[i]])
-        shift <- rbind(shift,shift.time.p.unc)
-      }
+      shifts.p=results.p[[nSopt.p]]$shifts
+      shift <- rbind(shift,cbind(shifts.p,id_iteration=hasShift[[i]]))
     }
     rownames(shift) <- NULL
-    # Transform uncertainty on the shift in POSIXct format
-    origin.date=allRes[[1]]$origin.date
-    if(all(!is.numeric(time))){
-      transformed.shift <- c()
-      for(i in 1:NROW(shift)){
-        transformed.shift.p <- data.frame(lapply(shift[i,1:3], function(column) {
-          numeric_to_time(d=column,origin.date=origin.date)
-        }))
-        transformed.shift=rbind(transformed.shift,transformed.shift.p)
-      }
-      shift[,1:3]=transformed.shift
-    }
     shift <- shift[order(shift$tau),]
   } else {
     shift=NULL
@@ -143,7 +124,8 @@ Segmentation_Recursive <- function(obs,
   data$period=c(1,1+cumsum(diff(data$period)!=0))
   # 2DO: review return object
   out=recursiveSegmentation(data=data,shifts=shift,tree=tree,
-                            origin.date=origin.date,results=allRes)
+                            origin.date=allRes[[1]]$origin.date,
+                            results=allRes)
   return(out)
 }
 
@@ -161,6 +143,9 @@ Segmentation_Recursive <- function(obs,
 #' res$shifts
 #' res$DICs
 #' hist(res$mcmc$tau)
+#' # Transform tau values from numeric to date/time format
+#' tau_date=numeric_to_time(res$mcmc$tau,origin.date=res$origin.date)
+#' plot(tau_date)
 #' # Segmentation using BaM, allowing more than 2 segments
 #' \dontrun{
 #' # This line of code is wrapped in \dontrun{} since it relies
@@ -547,7 +532,6 @@ Segmentation_quickApprox <- function(obs,time=1:length(obs),u=0*obs,nS=2,
   out$DIC=DIC1
   return(out)
 }
-
 
 #' No-shift likelihood
 #'

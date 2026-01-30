@@ -39,10 +39,5 @@ Creates a new instance of a 'recursiveSegmentation' object, used to
 store the results of a recursive segmentation with an unknown number of segment.
 }
 \examples{
-results=list()
-results[[1]]=Segmentation_Engine(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,
-                                 u=RhoneRiverAMAX$uH,nS=1)
-results[[2]]=Segmentation_Engine(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,
-                                 u=RhoneRiverAMAX$uH,nS=2)
 sg <- recursiveSegmentation()
 }
