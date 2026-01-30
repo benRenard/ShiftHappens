@@ -54,7 +54,7 @@ Segmentation_Recursive <- function(obs,
     for(j in 1:nX){ # Loop on each node
       k=k+1 # Increment main counter
       if(NROW(X[[j]])<nSmax*nMin){ # Can't segment, return default result
-        partial.segmentation=simpleSegmentation(time=TIME[[j]],obs=X[[j]],u=U[[j]])
+        partial.segmentation=multipleSegmentation(list(simpleSegmentation(time=TIME[[j]],obs=X[[j]],u=U[[j]])))
       } else { # Apply segmentation to subseries stored in node X[[j]]
         partial.segmentation=Segmentation(obs=X[[j]],time=TIME[[j]],u=U[[j]],
                                           nSmax=nSmax,doQuickApprox=doQuickApprox,nMin=nMin,

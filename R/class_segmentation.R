@@ -158,6 +158,7 @@ new_simpleSegmentation<-function(obs,time,u,data,shifts,mcmc,DIC,origin.date){
   o$mcmc=mcmc
   o$DIC=DIC
   o$origin.date=origin.date
+  o$nS=NROW(shifts)+1
   class(o) <- 'simpleSegmentation'
   return(o)
 }
@@ -172,7 +173,7 @@ new_multipleSegmentation<-function(results){
   stopifnot(all(sapply(results,is.simpleSegmentation)))
   # assemble object
   DICs=sapply(results,function(x){x$DIC})
-  nS=which.min(DICs)
+  if(is.null(DICs) | any(is.na(DICs))){nS=1} else {nS=which.min(DICs)}
   o=results[[nS]] # results for optimal number of segments
   o$nS=nS # Add optimal number of segments
   o$DICs=DICs # Add DICs for each number of segments
@@ -185,7 +186,7 @@ new_recursiveSegmentation<-function(data,shifts,tree,origin.date,results){
   #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   # basic checks
   stopifnot(is.data.frame(data))
-  stopifnot(is.data.frame(shifts))
+  if(!is.null(shifts)){stopifnot(is.data.frame(shifts))}
   stopifnot(is.data.frame(tree))
   stopifnot(is.list(results))
   # assemble object
