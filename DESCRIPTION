@@ -22,7 +22,9 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports:
     lubridate,
-    RBaM
+    RBaM,
+    ggplot2,
+    scales
 Suggests: 
     knitr,
     rmarkdown
