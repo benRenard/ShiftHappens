@@ -214,3 +214,23 @@ validate_recursiveSegmentation<-function(x){
   return(x)
 }
 
+#***************************************************************************----
+# plotting ----
+
+plot_segmentedData <- function(x){
+  DF=x$data
+  colourCount_obs=length(unique(DF$period))
+  getPalette_obs=scales::viridis_pal(option='D')
+  g=ggplot(data=DF)+
+    geom_point(aes(x=time,y=obs,col=factor(period)))
+  if(any(DF$u>0)){
+    g=g+geom_errorbar(aes(x=time, y=obs,ymin=I95_lower,ymax=I95_upper,col=factor(period)),width=3)
+  }
+  g=g+scale_color_manual(values=getPalette_obs(colourCount_obs))
+  DF=x$shifts
+  g=g+geom_vline(data=DF,aes(xintercept=tau))
+  g=g+labs(y='Observation',x='Time',title='Segmented data')
+  g=g+theme_bw()+theme(plot.title=element_text(hjust=0.5,face='bold',size=15),
+                       legend.position="none")
+  g
+}
