@@ -127,6 +127,7 @@ is.multipleSegmentation<-function(o){
 is.recursiveSegmentation<-function(o){
   return(class(o)=='recursiveSegmentation')
 }
+
 #***************************************************************************----
 # internal constructors ----
 
@@ -217,20 +218,54 @@ validate_recursiveSegmentation<-function(x){
 #***************************************************************************----
 # plotting ----
 
+#' simpleSegmentation plotter
+#'
+#' plot a simpleSegmentation object.
+#' @param x simpleSegmentation object
+#' @param type string, time
+#' @param ... Optional arguments.
+#' @return a ggplot
+#' @examples
+#' x=Segmentation_Engine(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH)
+#' plot(x)
+#' @export
+plot.simpleSegmentation <- function(x,type=c('data','shifts'),...){
+  typ=match.arg(type)
+  if(typ=='data'){
+    g=plot_segmentedData(x)
+  } else if(typ=='shifts'){
+    g=NULL
+  } else {
+    g=NULL
+  }
+  return(g)
+}
+
+#' Plot segmented data
+#'
+#' Plot segmented data after application of a segmentation procedure
+#'
+#' @param x object, of class simpleSegmentation, multipleSegmentation or recursiveSegmentation.
+#' @return a ggplot.
+#' @keywords internal
+#' @import ggplot2
 plot_segmentedData <- function(x){
   DF=x$data
   colourCount_obs=length(unique(DF$period))
   getPalette_obs=scales::viridis_pal(option='D')
   g=ggplot(data=DF)+
-    geom_point(aes(x=time,y=obs,col=factor(period)))
+    geom_point(aes(x=.data$time,y=.data$obs,col=factor(.data$period)))
   if(any(DF$u>0)){
-    g=g+geom_errorbar(aes(x=time, y=obs,ymin=I95_lower,ymax=I95_upper,col=factor(period)),width=3)
+    g=g+geom_errorbar(aes(x=.data$time, y=.data$obs,
+                          ymin=.data$I95_lower,ymax=.data$I95_upper,
+                          col=factor(.data$period)),
+                      width=3)
   }
   g=g+scale_color_manual(values=getPalette_obs(colourCount_obs))
   DF=x$shifts
-  g=g+geom_vline(data=DF,aes(xintercept=tau))
+  g=g+geom_vline(data=DF,aes(xintercept=.data$tau))
   g=g+labs(y='Observation',x='Time',title='Segmented data')
   g=g+theme_bw()+theme(plot.title=element_text(hjust=0.5,face='bold',size=15),
                        legend.position="none")
-  g
+  return(g)
 }
