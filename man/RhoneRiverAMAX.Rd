@@ -16,7 +16,7 @@
 }
 }
 \source{
-\url{https://doi.org/10.1016/j.jhydrol.2023.129840}
+\doi{10.1016/j.jhydrol.2023.129840}
 }
 \usage{
 RhoneRiverAMAX

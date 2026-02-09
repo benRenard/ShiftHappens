@@ -18,5 +18,5 @@
 #'  \item{uQ}{Uncertainty of the discharge expressed as standard deviation}
 #' }
 #'
-#' @source \url{https://doi.org/10.1016/j.jhydrol.2023.129840}
+#' @source \doi{10.1016/j.jhydrol.2023.129840}
 "RhoneRiverAMAX"
