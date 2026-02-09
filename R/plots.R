@@ -83,19 +83,19 @@ PlotTree <- function(tree){
   g=ggplot(DF_tree_plot)+
     # plot initial node
     geom_point(data=DF_initial_node,
-               aes(x,y),
+               aes(.data$x,.data$y),
                size=11, col='gray', shape=16, alpha=0.5)+
     # Text for the initial node
     geom_text(data=DF_initial_node,
-              aes(x,y,label=indx),
+              aes(.data$x,.data$y,label=.data$indx),
               size=4)+
     # Arrows to link the nodes
-    geom_segment(aes(x=xstart,y=ystart,xend=xend,yend=yend),
+    geom_segment(aes(x=.data$xstart,y=.data$ystart,xend=.data$xend,yend=.data$yend),
                  arrow=arrow(type='closed',length=unit(0.015, "npc")))+
     # Plot nodes of the tree structure
-    geom_point(aes(x,y,col=factor(parent),shape=factor(isTerminal)),
+    geom_point(aes(.data$x,.data$y,col=factor(.data$parent),shape=factor(.data$isTerminal)),
                size=8,alpha=0.8)+
-    geom_text(aes(x,y,label=indx,fontface=fontface),
+    geom_text(aes(.data$x,.data$y,label=.data$indx,fontface=.data$fontface),
               size=4)+
     scale_color_manual(name='Parent node',
                        values=color_legend,
