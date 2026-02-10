@@ -470,6 +470,7 @@ Segmentation_quickApprox <- function(obs,time=1:length(obs),u=0*obs,nS=2,
 
   # Start preparing output list
   out=simpleSegmentation(obs=obs,time=time,u=u)
+  out$nS=nS
   # no-change model
   start=c(mean(obs),sd(obs))
   if(all(u==0)){ # no need to optimize, estimate is explicit
