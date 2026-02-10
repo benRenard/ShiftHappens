@@ -3,7 +3,8 @@
 #' Cast a numeric interpreted as the duration after an origin date into a time format.
 #'
 #' @param d real vector, duration (in days) after origin.date
-#' @param origin.date value, origin date in character, POSIXct or Date format
+#' @param origin.date value, origin date in character, POSIXct or Date format.
+#'     If numeric, the untransformed vector d will be returned.
 #' @return the date d days after origin.date, in the same format as the latter
 #' @import lubridate
 #' @examples
@@ -12,7 +13,9 @@
 #' numeric_to_time(d=0.5,origin.date='1993-05-26')
 #' @export
 numeric_to_time <- function(d,origin.date){
-  if (lubridate::is.Date(origin.date)) {
+  if(is.numeric(origin.date)){
+    return(d)
+  } else if (lubridate::is.Date(origin.date)) {
     return(origin.date+d)
   }else if(lubridate::is.POSIXct(origin.date)){
     return(origin.date+d*86400)

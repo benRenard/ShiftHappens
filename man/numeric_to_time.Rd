@@ -9,7 +9,8 @@ numeric_to_time(d, origin.date)
 \arguments{
 \item{d}{real vector, duration (in days) after origin.date}
 
-\item{origin.date}{value, origin date in character, POSIXct or Date format}
+\item{origin.date}{value, origin date in character, POSIXct or Date format.
+If numeric, the untransformed vector d will be returned.}
 }
 \value{
 the date d days after origin.date, in the same format as the latter

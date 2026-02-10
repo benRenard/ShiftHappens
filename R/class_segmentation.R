@@ -269,3 +269,47 @@ plot_segmentedData <- function(x){
                        legend.position="none")
   return(g)
 }
+
+#***************************************************************************----
+# utilities ----
+#' Get Shifts
+#'
+#' Extract shifts (MCMC samples) from a of class simpleSegmentation, multipleSegmentation or recursiveSegmentation
+#'
+#' @param x object, of class simpleSegmentation, multipleSegmentation or recursiveSegmentation.
+#' @param castAsDate boolean. The raw MCMC simulations use an internal numeric representation of time.
+#'     If castAsDate is TRUE, they will be transformed into the time/date format that was used in the segmented dataset.
+#' @return a dataframe containing the MCMC samples of detected shift times
+#' @examples
+#' x <- Segmentation(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Date,u=RhoneRiverAMAX$uH)
+#' shifts=getShifts(x)
+#' summary(shifts)
+#' @export
+getShifts <- function(x,castAsDate=TRUE){
+  if(x$nS==1){return(data.frame())}
+  if(class(x) %in% c('simpleSegmentation','multipleSegmentation')){
+    nm=names(x$mcmc)
+    ix=grep('tau',nm)
+    col=nm[ix]
+    out=x$mcmc[col]
+  } else if(class(x) %in% c('recursiveSegmentation')){
+    its=unique(x$shifts$id_iteration)
+    for(i in 1:length(its)){
+      mcmc=x$results[[its[i]]]$mcmc
+      nm=names(mcmc)
+      ix=grep('tau',nm)
+      col=nm[ix]
+      if(i==1){out=mcmc[col]} else {out=cbind(out,mcmc[col])}
+    }
+    names(out) <- paste0('tau',1:NCOL(out))
+  } else {
+    stop('this function only applies to objects of class simpleSegmentation, multipleSegmentation or recursiveSegmentation')
+  }
+  if(castAsDate){
+    for(i in 1:NCOL(out)){
+      out[,i]=numeric_to_time(out[,i],origin.date=x$origin.date)
+    }
+  }
+  return(out)
+}
+
