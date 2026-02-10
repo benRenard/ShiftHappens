@@ -220,21 +220,71 @@ validate_recursiveSegmentation<-function(x){
 
 #' simpleSegmentation plotter
 #'
-#' plot a simpleSegmentation object.
-#' @param x simpleSegmentation object
-#' @param type string, time
-#' @param ... Optional arguments.
-#' @return a ggplot
+#' Plot a simpleSegmentation object.
+#' @param x object of class simpleSegmentation
+#' @inheritParams plot_anySegmentation
+#' @inherit plot_anySegmentation return
 #' @examples
 #' x=Segmentation_Engine(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH)
 #' plot(x)
 #' @export
-plot.simpleSegmentation <- function(x,type=c('data','shifts'),...){
+plot.simpleSegmentation <- function(x,type=c('both','data','shifts'),...){
+  g=plot_anySegmentation(x,type,...)
+  return(g)
+}
+
+#' multipleSegmentation plotter
+#'
+#' Plot a multipleSegmentation object.
+#' @param x object of class multipleSegmentation
+#' @inheritParams plot_anySegmentation
+#' @inherit plot_anySegmentation return
+#' @examples
+#' x=Segmentation(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH)
+#' plot(x)
+#' @export
+plot.multipleSegmentation <- function(x,type=c('both','data','shifts'),...){
+  g=plot_anySegmentation(x,type,...)
+  return(g)
+}
+
+#' recursiveSegmentation plotter
+#'
+#' Plot a recursiveSegmentation object.
+#' @param x object of class recursiveSegmentation
+#' @inheritParams plot_anySegmentation
+#' @inherit plot_anySegmentation return
+#' @examples
+#' x=Segmentation_Recursive(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH)
+#' plot(x)
+#' @export
+plot.recursiveSegmentation <- function(x,type=c('both','data','shifts'),...){
+  g=plot_anySegmentation(x,type,...)
+  return(g)
+}
+
+#' Segmentation plotter
+#'
+#' plot a segmentation object of class simpleSegmentation, multipleSegmentation or recursiveSegmentation.
+#' @param x object, of class simpleSegmentation, multipleSegmentation or recursiveSegmentation.
+#' @param type string, type of plot
+#' @param ... Optional arguments
+#' @return a ggplot
+#' @keywords internal
+#' @import ggplot2
+#' @importFrom patchwork wrap_plots plot_layout
+plot_anySegmentation <- function(x,type=c('both','data','shifts'),...){
   typ=match.arg(type)
   if(typ=='data'){
     g=plot_segmentedData(x)
   } else if(typ=='shifts'){
-    g=NULL
+    g=plot_shifts(x)
+  } else if(typ=='both'){
+    g1=plot_segmentedData(x)
+    g2=plot_shifts(x)
+    g=wrap_plots(g1+labs(title='Segmented data and shifts'),
+                 g2+labs(title=NULL),ncol=1)+
+      plot_layout(axes='collect_x')
   } else {
     g=NULL
   }
@@ -249,6 +299,7 @@ plot.simpleSegmentation <- function(x,type=c('data','shifts'),...){
 #' @return a ggplot.
 #' @keywords internal
 #' @import ggplot2
+#' @importFrom scales viridis_pal
 plot_segmentedData <- function(x){
   DF=x$data
   colourCount_obs=length(unique(DF$period))
@@ -270,6 +321,38 @@ plot_segmentedData <- function(x){
   return(g)
 }
 
+#' Plot shifts
+#'
+#' Plot shifts detected after application of a segmentation procedure
+#'
+#' @param x object, of class simpleSegmentation, multipleSegmentation or recursiveSegmentation.
+#' @return a ggplot.
+#' @keywords internal
+#' @import ggplot2
+#' @importFrom dplyr left_join starts_with
+#' @importFrom tidyr pivot_longer
+plot_shifts <- function(x){
+  tlim=range(x$data$time)
+  shifts=getShifts(x)
+  DF=pivot_longer(shifts,cols=starts_with('tau'),names_to='shift')
+  if(inherits(x,'recursiveSegmentation')){ #
+    foo=data.frame(iteration=x$shifts$id_iteration,shift=paste0('tau',1:NROW(x$shifts)))
+    DF=left_join(DF,foo,by='shift')
+  } else {
+    DF=cbind(DF,iteration=1)
+  }
+  g=ggplot(DF,aes(x=.data$value,group=.data$shift))+
+    geom_density(fill='black',alpha=0.6,color=NA)+
+    coord_cartesian(xlim=tlim)+
+    labs(y='Density',x='Time',title='Shifts')+
+    facet_grid(rows=vars(.data$iteration),scales='free_y')+
+    theme_bw()+
+    theme(plot.title=element_text(hjust=0.5,face='bold',size=15),legend.position="none",
+          axis.text.y=element_blank(),axis.ticks.y=element_blank(),
+          panel.grid=element_blank())
+  return(g)
+}
+
 #***************************************************************************----
 # utilities ----
 #' Get Shifts
@@ -287,12 +370,12 @@ plot_segmentedData <- function(x){
 #' @export
 getShifts <- function(x,castAsDate=TRUE){
   if(x$nS==1){return(data.frame())}
-  if(class(x) %in% c('simpleSegmentation','multipleSegmentation')){
+  if(inherits(x,'simpleSegmentation') | inherits(x,'multipleSegmentation')){
     nm=names(x$mcmc)
     ix=grep('tau',nm)
     col=nm[ix]
     out=x$mcmc[col]
-  } else if(class(x) %in% c('recursiveSegmentation')){
+  } else if(inherits(x,'recursiveSegmentation')){
     its=unique(x$shifts$id_iteration)
     for(i in 1:length(its)){
       mcmc=x$results[[its[i]]]$mcmc
@@ -312,4 +395,3 @@ getShifts <- function(x,castAsDate=TRUE){
   }
   return(out)
 }
-

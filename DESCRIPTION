@@ -24,7 +24,10 @@ Imports:
     lubridate,
     RBaM,
     ggplot2,
-    scales
+    scales,
+    dplyr,
+    tidyr,
+    patchwork
 Suggests: 
     knitr,
     rmarkdown

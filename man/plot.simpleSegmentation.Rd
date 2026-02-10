@@ -4,20 +4,20 @@
 \alias{plot.simpleSegmentation}
 \title{simpleSegmentation plotter}
 \usage{
-\method{plot}{simpleSegmentation}(x, type = c("data", "shifts"), ...)
+\method{plot}{simpleSegmentation}(x, type = c("both", "data", "shifts"), ...)
 }
 \arguments{
-\item{x}{simpleSegmentation object}
+\item{x}{object of class simpleSegmentation}
 
-\item{type}{string, time}
+\item{type}{string, type of plot}
 
-\item{...}{Optional arguments.}
+\item{...}{Optional arguments}
 }
 \value{
 a ggplot
 }
 \description{
-plot a simpleSegmentation object.
+Plot a simpleSegmentation object.
 }
 \examples{
 x=Segmentation_Engine(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH)
