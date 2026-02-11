@@ -314,7 +314,7 @@ plot_segmentedData <- function(x){
   }
   g=g+scale_color_manual(values=getPalette_obs(colourCount_obs))
   DF=x$shifts
-  g=g+geom_vline(data=DF,aes(xintercept=.data$tau))
+  if(NROW(DF)>0){g=g+geom_vline(data=DF,aes(xintercept=.data$tau))}
   g=g+labs(y='Observation',x='Time',title='Segmented data')
   g=g+theme_bw()+theme(plot.title=element_text(hjust=0.5,face='bold',size=15),
                        legend.position="none")
@@ -334,19 +334,22 @@ plot_segmentedData <- function(x){
 plot_shifts <- function(x){
   tlim=range(x$data$time)
   shifts=getShifts(x)
-  DF=pivot_longer(shifts,cols=starts_with('tau'),names_to='shift')
-  if(inherits(x,'recursiveSegmentation')){ #
-    foo=data.frame(iteration=x$shifts$id_iteration,shift=paste0('tau',1:NROW(x$shifts)))
-    DF=left_join(DF,foo,by='shift')
+  if(NROW(shifts)>0){
+    DF=pivot_longer(shifts,cols=starts_with('tau'),names_to='shift')
+    if(inherits(x,'recursiveSegmentation')){ #
+      foo=data.frame(iteration=x$shifts$id_iteration,shift=paste0('tau',1:NROW(x$shifts)))
+      DF=left_join(DF,foo,by='shift')
+    } else {
+      DF=cbind(DF,iteration=1)
+    }
+    g=ggplot(DF,aes(x=.data$value,group=.data$shift))+
+      geom_density(fill='black',alpha=0.6,color=NA)+
+      coord_cartesian(xlim=tlim)+
+      facet_grid(rows=vars(.data$iteration),scales='free_y')
   } else {
-    DF=cbind(DF,iteration=1)
+    g=ggplot()
   }
-  g=ggplot(DF,aes(x=.data$value,group=.data$shift))+
-    geom_density(fill='black',alpha=0.6,color=NA)+
-    coord_cartesian(xlim=tlim)+
-    labs(y='Density',x='Time',title='Shifts')+
-    facet_grid(rows=vars(.data$iteration),scales='free_y')+
-    theme_bw()+
+  g=g+labs(y='Density',x='Time',title='Shifts')+theme_bw()+
     theme(plot.title=element_text(hjust=0.5,face='bold',size=15),legend.position="none",
           axis.text.y=element_blank(),axis.ticks.y=element_blank(),
           panel.grid=element_blank())
