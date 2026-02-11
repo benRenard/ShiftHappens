@@ -24,3 +24,11 @@ plot(x)
 x=Segmentation_Recursive(obs=RhoneRiverAMAX$uQ,time=RhoneRiverAMAX$Date)
 plot(x)
 PlotTree(x$tree)
+shifts=getShifts(x)
+for(i in 1:NCOL(shifts)){
+  if(i==1){
+    plot(shifts[,i],type='l',ylim=range(x$data$time),col=i)
+  } else {
+    lines(shifts[,i],col=i)
+  }
+}
