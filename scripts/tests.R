@@ -13,3 +13,14 @@ plot(x)
 # no shift
 x=Segmentation_Recursive(obs=RhoneRiverAMAX$Q,time=RhoneRiverAMAX$Date,u=RhoneRiverAMAX$uQ)
 plot(x)
+
+# many shifts, non-recursive
+x=Segmentation(obs=RhoneRiverAMAX$uQ,time=RhoneRiverAMAX$Date,nSmax=7)
+plot(x$DICs)
+matplot(x$mcmc[,grep('tau',names(x$mcmc))])
+plot(x)
+
+# many shifts, recursive
+x=Segmentation_Recursive(obs=RhoneRiverAMAX$uQ,time=RhoneRiverAMAX$Date)
+plot(x)
+PlotTree(x$tree)

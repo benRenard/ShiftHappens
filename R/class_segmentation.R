@@ -136,8 +136,6 @@ new_simpleSegmentation<-function(obs,time,u,data,shifts,mcmc,DIC,origin.date){
   # basic checks
   stopifnot(is.numeric(obs))
   stopifnot(is.vector(obs))
-  stopifnot(is.numeric(time))
-  stopifnot(is.vector(time))
   stopifnot(is.numeric(u))
   stopifnot(is.vector(u))
   if(!is.null(data)){stopifnot(is.data.frame(data))}
