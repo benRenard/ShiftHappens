@@ -38,11 +38,11 @@ Segmentation_Recursive <- function(obs,
   tree=data.frame() # store tree structure (parents - children relationship)
   p=1 # Auxiliary counter needed to keep track of children / parents indices
   level=0 # Recursion level. The tree is created level-by-level rather than branch-by-branch
-  X=list(obs) # List of all nodes (each corresponding to a subseries of x) to be segmented at this level. Start with a unique node corresponding to the whole series
+  X=list(obs) # List of all nodes (each corresponding to a subseries of obs) to be segmented at this level. Start with a unique node corresponding to the whole series
   TIME=list(time) # List of corresponding times
   U=list(u) # List of corresponding uncertainties
-  indices=c(1) # Vector containing the indices of each node - same size as X
-  parents=c(0) # Vector containing the indices of the parents of each node - same size as X
+  indices=c(1) # Vector containing the indices of each node - same size as obs
+  parents=c(0) # Vector containing the indices of the parents of each node - same size as obs
   continue=TRUE # Logical determining whether recursion should continue
 
   while(continue){

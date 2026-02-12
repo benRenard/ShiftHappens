@@ -22,7 +22,7 @@ Fit_LinearRegression <- function(x,y,time=1:NROW(y)){
   # Assemble results
   DF=as.data.frame(x)
   if(is.null(names(x))){names(DF) <- paste0('x',1:NCOL(DF))}
-  DF=cbind(time=time,DF,obs=as.matrix(y)[,1],sim=mod$fitted.values,
+  DF=cbind(time=as.data.frame(time)[,1],DF,obs=as.matrix(y)[,1],sim=mod$fitted.values,
            res=mod$residuals,uRes=stats::sd(mod$residuals))
   pars=stats::coef(mod)
   out=fittedModel(data=DF,parameters=stats::coef(mod))
