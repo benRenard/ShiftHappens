@@ -13,11 +13,11 @@ Segmentation:
 
 Plots: a lot of simplification/factorization is possible, by taking advantage of ggplots + functionalities (e.g. do not create a new function to change titles, +labs() will work). Stick to context-independent plots here. If need be, specialized plots should be in *_tools modules.
 
-Needs a BaRatin_tools module? or can it stay part of curve_tools? -> No, make a BaRatin_tools, including in particular the fitRC_BaRatinXXX functions
+fitRC: should become fitModel (pIN-1OUT), and be context-independent. Mostly involves changing functions arguments (e.g. X/Y rather than H/Q). Also create a clas for results
 
-fitRC: should become fitCurve, and be context-independent. Mostly involves changing functions arguments (e.g. X/Y rather than H/Q).
+Needs a BaRatin_tools module? or can it stay part of curve_tools? -> No, make a BaRatin_tools, including in particular the fitRC_BaRatinXXX functions -> Not sure about that. At least fitRC_BaRatinXXX should rather go into fitModel. If there are other BaRatin utilities than this module may be worth it.
 
-modelandsegment_gaugings: should become recursiveModeling, and be context-independent. Or maybe need to stick to recursiveCurveFitting, i.e. 1IN-1OUT model (or maybe pIN-1OUT) ? In which case we may have curve_tools (which would include fitCurve)?
+modelandsegment_gaugings: should become recursiveModeling, and be context-independent. Or maybe need to stick to recursiveCurveFitting, i.e. 1IN-1OUT model (or maybe pIN-1OUT) ? In which case we may have curve_tools (which would include fitCurve)? -> make a context-independent recursiveModeling function, linked to any fitModel function.
 
 Catalog: OK, but review link with equations_RC_recessions
 
