@@ -1,34 +1,39 @@
 # default
-x=Segmentation_Recursive(obs=RhoneRiverAMAX$H)
-plot(x)
+sg=Segmentation_Recursive(obs=RhoneRiverAMAX$H)
+plot(sg)
 
 # use dates
-x=Segmentation_Recursive(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Date)
-plot(x)
+sg=Segmentation_Recursive(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Date)
+plot(sg)
 
 # use uncertainties
-x=Segmentation_Recursive(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Date,u=RhoneRiverAMAX$uH)
-plot(x)
+sg=Segmentation_Recursive(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Date,u=RhoneRiverAMAX$uH)
+plot(sg)
 
 # no shift
-x=Segmentation_Recursive(obs=RhoneRiverAMAX$Q,time=RhoneRiverAMAX$Date,u=RhoneRiverAMAX$uQ)
-plot(x)
+sg=Segmentation_Recursive(obs=RhoneRiverAMAX$Q,time=RhoneRiverAMAX$Date,u=RhoneRiverAMAX$uQ)
+plot(sg)
 
 # many shifts, non-recursive
-x=Segmentation(obs=RhoneRiverAMAX$uQ,time=RhoneRiverAMAX$Date,nSmax=7)
-plot(x$DICs)
-matplot(x$mcmc[,grep('tau',names(x$mcmc))])
-plot(x)
+sg=Segmentation(obs=RhoneRiverAMAX$uQ,time=RhoneRiverAMAX$Date,nSmax=7)
+plot(sg$DICs)
+matplot(sg$mcmc[,grep('tau',names(sg$mcmc))])
+plot(sg)
 
 # many shifts, recursive
-x=Segmentation_Recursive(obs=RhoneRiverAMAX$uQ,time=RhoneRiverAMAX$Date)
-plot(x)
-PlotTree(x$tree)
-shifts=getShifts(x)
+sg=Segmentation_Recursive(obs=RhoneRiverAMAX$uQ,time=RhoneRiverAMAX$Date)
+plot(sg)
+PlotTree(sg$tree)
+shifts=getShifts(sg)
 for(i in 1:NCOL(shifts)){
   if(i==1){
-    plot(shifts[,i],type='l',ylim=range(x$data$time),col=i)
+    plot(shifts[,i],type='l',ylim=range(sg$data$time),col=i)
   } else {
     lines(shifts[,i],col=i)
   }
 }
+
+# Recursive modeling with default linear regression
+sg=Segmentation_RecursiveModeling(x=RhoneRiverAMAX$H,y=RhoneRiverAMAX$Q)
+sg$segmentation$shifts
+plot(sg$segmentation)

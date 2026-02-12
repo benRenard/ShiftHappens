@@ -1,3 +1,151 @@
+#' Recursive Modeling Segmentation
+#'
+#' Recursive Modeling Segmentation procedure for an \strong{unknown} number of segments,
+#' aimed at detecting changes in the relation between X and Y.
+#'
+#' @param x real matrix or data frame, predictors
+#' @param y real vector, predictand
+#' @param time vector (numeric or date), time
+#' @param uY real vector, uncertainty in predictand y (as a standard deviation)
+#' @param Fit_funk function, function used to fit the model
+#' @param ... optional arguments passed to function Fit_funk
+#' @inheritParams Segmentation_Recursive
+#'
+#' @return a list with the following components:
+#' \enumerate{
+#'   \item segmentation: an object of class [recursiveSegmentation()],
+#'       containing the results of the segmentation of residuals
+#'   \item fit: a list of objects of class [fittedModel()],
+#'       containing the results of the model fit at each stage of the recursion
+#' }
+#' @examples
+#' res=Segmentation_RecursiveModeling(x=RhoneRiverAMAX$H,y=RhoneRiverAMAX$Q)
+#' res$segmentation$shifts
+#' res$segmentation$tree
+#' plot(RhoneRiverAMAX$H,RhoneRiverAMAX$Q,col=res$segmentation$data$period)
+#' @export
+Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uY=0*y,
+                                           nSmax=2,
+                                           doQuickApprox=TRUE,
+                                           nMin=ifelse(doQuickApprox,3,1),
+                                           Fit_funk=Fit_LinearRegression,...,
+                                           nSim=500,varShift=FALSE,alpha=0.1,
+                                           mcmc_options=RBaM::mcmcOptions(),
+                                           mcmc_cooking=RBaM::mcmcCooking(),
+                                           temp.folder=file.path(tempdir(),'BaM'),
+                                           mu_prior = list()){
+  if(NROW(y)<2){
+    stop('At least 2 observations are required',call.=FALSE)
+  }
+  # Initialization
+  allRes=list() # store segmentation results for all nodes in a sequential list
+  allFits=list() # store fitting results for all nodes in a sequential list
+  k=0 # Main counter used to control indices in allRes
+  tree=data.frame() # store tree structure (parents - children relationship)
+  p=1 # Auxiliary counter needed to keep track of children / parents indices
+  level=0 # Recursion level. The tree is created level-by-level rather than branch-by-branch
+  X=list(as.data.frame(x)) # List X of all nodes (each corresponding to a subseries of x) to be segmented at this level. Start with a unique node corresponding to the whole series
+  Y=list(as.data.frame(y)) # List Y of all nodes (each corresponding to a subseries of y) to be segmented at this level. Start with a unique node corresponding to the whole series
+  TIME=list(as.data.frame(time)) # List of corresponding times
+  U=list(as.data.frame(uY)) # List of corresponding uncertainties
+  indices=c(1) # Vector containing the indices of each node - same size as X
+  parents=c(0) # Vector containing the indices of the parents of each node - same size as X
+  continue=TRUE # Logical determining whether recursion should continue
+
+  while(continue){
+    level=level+1 # Increment recursion level
+    nX=length(X) # Number of nodes at this level
+    keepgoing=rep(NA,nX) # Should recursion continue for each node?
+    newX=newY=newTIME=newU=newIndices=newParents=c() # Will be used to update subseries, indices and parents at the end of each recursion level
+    m=0 # Local counter used to control indices in the 4 vectors above => reset to 0 at each new level of the recursion
+    for(j in 1:nX){ # Loop on each node
+      k=k+1 # Increment main counter
+      # Fit model
+      f=Fit_funk(x=X[[j]],y=Y[[j]],time=TIME[[j]])
+      if(NROW(Y[[j]])<nSmax*nMin){ # Can't segment, return default result
+        partial.segmentation=multipleSegmentation(list(simpleSegmentation(time=f$data$time,obs=f$data$res,u=f$data$uRes)))
+      } else { # Apply segmentation to subseries stored in node
+        partial.segmentation=Segmentation(obs=f$data$res,time=f$data$time,u=f$data$uRes,
+                                          nSmax=nSmax,doQuickApprox=doQuickApprox,nMin=nMin,
+                                          nSim=nSim,varShift=varShift,alpha=alpha,
+                                          mcmc_options=mcmc_options,mcmc_cooking=mcmc_cooking,
+                                          temp.folder,mu_prior=mu_prior)
+      }
+      # Save results for this node
+      allRes[[k]]=partial.segmentation
+      allFits[[k]]=f
+      # Save optimal number of segments
+      nSopt=partial.segmentation$nS
+      # Update recursion tree
+      tree=rbind(tree,data.frame(indx=k,level=level,parent=parents[j],nS=nSopt))
+      # This was the trickiest part: keeping track of indices and parents
+      keepgoing[j]=nSopt>1 # if nS=1, segmentation will not continue for this node which is hence terminal
+      if(keepgoing[j]){ # Save results for segmentation at next level
+        for(i in 1:nSopt){ # Loop on each segment detected for the current node
+          p=p+1 # Increment auxiliary counter
+          m=m+1 # Increment local counter
+          mask=partial.segmentation$results[[nSopt]]$data$period==i
+          # newX[[m]]=partial.segmentation$results[[nSopt]]$data$obs[mask] # Save ith segment (on a total of nS)
+          # newTIME[[m]]=partial.segmentation$results[[nSopt]]$data$time[mask] # Save corresponding times
+          # newU[[m]]=partial.segmentation$results[[nSopt]]$data$u[mask] # Save corresponding uncertainty
+          newX[[m]]=as.data.frame(X[[j]][mask,]) # Save X for ith segment (on a total of nS)
+          newY[[m]]=as.data.frame(Y[[j]][mask,]) # Save Y ith segment (on a total of nS)
+          newTIME[[m]]=as.data.frame(TIME[[j]][mask,]) # Save corresponding times
+          newU[[m]]=as.data.frame(U[[j]][mask,]) # Save corresponding uncertainty
+          newParents[m]=indices[j] # At next level, the parent of this segment will be the index of current node
+          newIndices[m]=p # At next level, the index of this segment will be p
+        }
+      }
+    }
+    # Check if recursion should continue at all, i.e. if at least one node is not terminal
+    if(all(keepgoing==FALSE)) continue=FALSE
+    # Update list of nodes to be further segmented at next level + parents and indices
+    X=newX
+    Y=newY
+    TIME=newTIME
+    U=newU
+    parents=newParents
+    indices=newIndices
+  }
+
+  # Get terminal nodes
+  terminal=which(tree$nS==1)
+  # Assemble final dataset with period column by using information from terminal nodes
+  data <- c()
+  for(i in 1:length(terminal)){
+    data.stable.p=allRes[[terminal[i]]]$results[[1]]$data #Save data from stable period
+    node = data.frame(time=data.stable.p$time,obs=data.stable.p$obs,u=data.stable.p$u,
+                      I95_lower=data.stable.p$obs+stats::qnorm(0.025)*data.stable.p$u,
+                      I95_upper=data.stable.p$obs+stats::qnorm(0.975)*data.stable.p$u,
+                      period = rep(i,NROW(data.stable.p)))
+    data = rbind(data,node)
+  }
+  # Get info from nodes with shifts
+  hasShift=which(tree$nS!=1)
+  if(length(hasShift)>0){
+    shift <- c()
+    for(i in 1:length(hasShift)){
+      nSopt.p = allRes[[hasShift[i]]]$nS
+      results.p = allRes[[hasShift[i]]]$results
+      shifts.p=results.p[[nSopt.p]]$shifts
+      shift <- rbind(shift,cbind(shifts.p,id_iteration=hasShift[[i]]))
+    }
+    rownames(shift) <- NULL
+    shift <- shift[order(shift$tau),]
+  } else {
+    shift=NULL
+  }
+  # Tidy up returned data
+  data=data[order(data$time),] # sort
+  data$period=c(1,1+cumsum(diff(data$period)!=0))
+  # 2DO: review return object
+  out=list(segmentation=recursiveSegmentation(data=data,shifts=shift,tree=tree,
+                                              origin.date=allRes[[1]]$origin.date,
+                                              results=allRes),
+           fit=allFits)
+  return(out)
+}
+
 #' Recursive Segmentation
 #'
 #' Recursive segmentation procedure for an \strong{unknown} number of segments
