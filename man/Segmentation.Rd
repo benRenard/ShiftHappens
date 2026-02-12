@@ -17,8 +17,7 @@ Segmentation(
   mcmc_options = RBaM::mcmcOptions(),
   mcmc_cooking = RBaM::mcmcCooking(),
   temp.folder = file.path(tempdir(), "BaM"),
-  mu_prior = list(),
-  ...
+  mu_prior = list()
 )
 }
 \arguments{
@@ -51,8 +50,6 @@ Only used when doQuickApprox=FALSE.}
 
 \item{mu_prior}{list, object describing prior knowledge on the mean of residuals for each segment.
 Only used when doQuickApprox=FALSE.}
-
-\item{...}{other arguments passed to RBaM::BaM.}
 }
 \value{
 An object of class \code{\link[=multipleSegmentation]{multipleSegmentation()}}, containing the following fields:

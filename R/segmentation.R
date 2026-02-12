@@ -28,7 +28,7 @@ Segmentation_Recursive <- function(obs,
                                    mcmc_options=RBaM::mcmcOptions(),
                                    mcmc_cooking=RBaM::mcmcCooking(),
                                    temp.folder=file.path(tempdir(),'BaM'),
-                                   mu_prior = list(),...){
+                                   mu_prior = list()){
   if(length(obs)<2){
     stop('At least 2 observations are required',call.=FALSE)
   }
@@ -60,7 +60,7 @@ Segmentation_Recursive <- function(obs,
                                           nSmax=nSmax,doQuickApprox=doQuickApprox,nMin=nMin,
                                           nSim=nSim,varShift=varShift,alpha=alpha,
                                           mcmc_options=mcmc_options,mcmc_cooking=mcmc_cooking,
-                                          temp.folder,mu_prior=mu_prior,...)
+                                          temp.folder,mu_prior=mu_prior)
       }
       # Save results for this node
       allRes[[k]]=partial.segmentation
@@ -165,7 +165,7 @@ Segmentation <- function(obs,
                          mcmc_options=RBaM::mcmcOptions(),
                          mcmc_cooking=RBaM::mcmcCooking(),
                          temp.folder=file.path(tempdir(),'BaM'),
-                         mu_prior = list(),...){
+                         mu_prior = list()){
 
   if(nSmax<=0){
     stop('Maximum number of segments should be larger than 0',call.=FALSE)
@@ -197,7 +197,7 @@ Segmentation <- function(obs,
       res[[i]] <- Segmentation_Engine(obs=obs,time=time,u=u,nS=nS,nMin=nMin,
                                       mcmc_options=mcmc_options,mcmc_cooking=mcmc_cooking,
                                       temp.folder=temp.folder,mu_prior=mu_args,
-                                      doQuickApprox=quick,varShift=varShift,alpha=alpha,...)
+                                      doQuickApprox=quick,varShift=varShift,alpha=alpha)
       DICs [i] <- res[[i]]$DIC
     }
   }
@@ -226,7 +226,6 @@ Segmentation <- function(obs,
 #'     Only used when doQuickApprox=FALSE.
 #' @param mu_prior list, object describing prior knowledge on the mean of residuals for each segment.
 #'     Only used when doQuickApprox=FALSE.
-#' @param ... other arguments passed to RBaM::BaM.
 #'
 #' @inherit simpleSegmentation return
 #'
@@ -262,7 +261,7 @@ Segmentation_Engine <- function(obs,
                                 mcmc_options=RBaM::mcmcOptions(),
                                 mcmc_cooking=RBaM::mcmcCooking(),
                                 temp.folder=file.path(tempdir(),'BaM'),
-                                mu_prior=list(NULL),...){
+                                mu_prior=list(NULL)){
 
   if(length(obs)<2)stop('At least 2 observations are required',call.=FALSE)
   if(length(obs)<nS)stop('Number of observations is lower than the number of segments',call.=FALSE)
@@ -367,7 +366,7 @@ Segmentation_Engine <- function(obs,
               workspace=temp.folder,
               mcmc=mcmc_options,
               cook = mcmc_cooking,
-              remnant = remnant_prior,...)
+              remnant = remnant_prior)
 
     mcmc.segm    <- utils::read.table(file=file.path(temp.folder,mcmc_cooking$result.fname),header=TRUE)
     mcmc.DIC     <- utils::read.table(file=file.path(temp.folder,"Results_DIC.txt"),header=FALSE)

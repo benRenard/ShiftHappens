@@ -13,7 +13,7 @@ Segmentation:
 
 Plots: a lot of simplification/factorization is possible, by taking advantage of ggplots + functionalities (e.g. do not create a new function to change titles, +labs() will work). Stick to context-independent plots here. If need be, specialized plots should be in *_tools modules.
 
-fitRC: should become fitModel (pIN-1OUT), and be context-independent. Mostly involves changing functions arguments (e.g. X/Y rather than H/Q). Also create a clas for results
+fitRC: should become fitModel (pIN-1OUT), and be context-independent. Mostly involves changing functions arguments (e.g. X/Y rather than H/Q). Also create a class for results
 
 Needs a BaRatin_tools module? or can it stay part of curve_tools? -> No, make a BaRatin_tools, including in particular the fitRC_BaRatinXXX functions -> Not sure about that. At least fitRC_BaRatinXXX should rather go into fitModel. If there are other BaRatin utilities than this module may be worth it.
 
