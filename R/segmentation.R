@@ -19,10 +19,13 @@
 #'       containing the results of the model fit at each stage of the recursion
 #' }
 #' @examples
-#' res=Segmentation_RecursiveModeling(x=RhoneRiverAMAX$H,y=RhoneRiverAMAX$Q)
+#' res=Segmentation_RecursiveModeling(x=ArdecheRiverGaugings$H,
+#'                                    y=ArdecheRiverGaugings$Q,
+#'                                    uY=ArdecheRiverGaugings$uQ,
+#'                                    time=ArdecheRiverGaugings$Date)
 #' res$segmentation$shifts
 #' res$segmentation$tree
-#' plot(RhoneRiverAMAX$H,RhoneRiverAMAX$Q,col=res$segmentation$data$period)
+#' plot(ArdecheRiverGaugings$H,ArdecheRiverGaugings$Q,col=res$segmentation$data$period)
 #' @export
 Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uY=0*y,
                                            nSmax=2,

@@ -74,8 +74,11 @@ Recursive Modeling Segmentation procedure for an \strong{unknown} number of segm
 aimed at detecting changes in the relation between X and Y.
 }
 \examples{
-res=Segmentation_RecursiveModeling(x=RhoneRiverAMAX$H,y=RhoneRiverAMAX$Q)
+res=Segmentation_RecursiveModeling(x=ArdecheRiverGaugings$H,
+                                   y=ArdecheRiverGaugings$Q,
+                                   uY=ArdecheRiverGaugings$uQ,
+                                   time=ArdecheRiverGaugings$Date)
 res$segmentation$shifts
 res$segmentation$tree
-plot(RhoneRiverAMAX$H,RhoneRiverAMAX$Q,col=res$segmentation$data$period)
+plot(ArdecheRiverGaugings$H,ArdecheRiverGaugings$Q,col=res$segmentation$data$period)
 }

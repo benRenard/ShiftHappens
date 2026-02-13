@@ -34,6 +34,8 @@ for(i in 1:NCOL(shifts)){
 }
 
 # Recursive modeling with default linear regression
-sg=Segmentation_RecursiveModeling(x=RhoneRiverAMAX$H,y=RhoneRiverAMAX$Q)
+sg=Segmentation_RecursiveModeling(x=ArdecheRiverGaugings$H,
+                                  y=ArdecheRiverGaugings$Q,
+                                  uY=ArdecheRiverGaugings$uQ)
 sg$segmentation$shifts
 plot(sg$segmentation)

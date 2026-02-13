@@ -20,3 +20,26 @@
 #'
 #' @source \doi{10.1016/j.jhydrol.2023.129840}
 "RhoneRiverAMAX"
+
+#' Gauging of the Ardèche River at Meyras, France, provided by UHPC Grand Delta
+#'
+#' A data frame containing stages (H, in meters) and discharges measurements
+#' (Q, in cubic meters per second) for the Ardèche River at Meyras, France,
+#' along with the associated uncertainties expressed as standard deviations (uQ) from 2001 until 2018
+#'
+#' @format
+#' \describe{
+#'   \item{Day}{Day}
+#'   \item{Month}{Month}
+#'   \item{Year}{Year}
+#'   \item{Hour}{Hour}
+#'   \item{Minute}{Minute}
+#'   \item{Second}{Second}
+#'   \item{Date}{Date}
+#'   \item{H}{Stage measurement}
+#'   \item{Q}{Discharge measurement}
+#'   \item{uQ}{Discharge uncertainty expressed as a standard deviation}
+#' }
+#'
+#' @source \doi{10.1029/2018WR023389}
+"ArdecheRiverGaugings"
