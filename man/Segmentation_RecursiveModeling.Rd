@@ -61,13 +61,7 @@ Only used when doQuickApprox=FALSE.}
 Only used when doQuickApprox=FALSE.}
 }
 \value{
-a list with the following components:
-\enumerate{
-\item segmentation: an object of class \code{\link[=recursiveSegmentation]{recursiveSegmentation()}},
-containing the results of the segmentation of residuals
-\item fit: a list of objects of class \code{\link[=fittedModel]{fittedModel()}},
-containing the results of the model fit at each stage of the recursion
-}
+an object of class \code{\link[=recursiveModeling]{recursiveModeling()}}
 }
 \description{
 Recursive Modeling Segmentation procedure for an \strong{unknown} number of segments,

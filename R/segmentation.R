@@ -11,13 +11,7 @@
 #' @param ... optional arguments passed to function Fit_funk
 #' @inheritParams Segmentation_Recursive
 #'
-#' @return a list with the following components:
-#' \enumerate{
-#'   \item segmentation: an object of class [recursiveSegmentation()],
-#'       containing the results of the segmentation of residuals
-#'   \item fit: a list of objects of class [fittedModel()],
-#'       containing the results of the model fit at each stage of the recursion
-#' }
+#' @return an object of class [recursiveModeling()]
 #' @examples
 #' res=Segmentation_RecursiveModeling(x=ArdecheRiverGaugings$H,
 #'                                    y=ArdecheRiverGaugings$Q,
@@ -141,11 +135,11 @@ Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uY=0*y,
   # Tidy up returned data
   data=data[order(data$time),] # sort
   data$period=c(1,1+cumsum(diff(data$period)!=0))
-  # 2DO: review return object
-  out=list(segmentation=recursiveSegmentation(data=data,shifts=shift,tree=tree,
-                                              origin.date=allRes[[1]]$origin.date,
-                                              results=allRes),
-           fit=allFits)
+  # Assemble return object
+  seg=recursiveSegmentation(data=data,shifts=shift,tree=tree,
+                            origin.date=allRes[[1]]$origin.date,
+                            results=allRes)
+  out=recursiveModeling(segmentation=seg,fit=allFits)
   return(out)
 }
 
