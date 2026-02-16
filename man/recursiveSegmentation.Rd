@@ -7,7 +7,7 @@
 recursiveSegmentation(
   data = data.frame(),
   shifts = data.frame(),
-  tree = data.frame(),
+  tree = segmentationTree(),
   origin.date = NULL,
   results = list()
 )
@@ -17,7 +17,7 @@ recursiveSegmentation(
 
 \item{shifts}{data frame, detected shifts (with columns tau, I95_lower and I95_upper)}
 
-\item{tree}{data frame, recursion tree.}
+\item{tree}{\code{\link[=segmentationTree]{segmentationTree()}} object, recursion tree.}
 
 \item{origin.date}{dates origin (useful for date conversions)}
 
@@ -29,7 +29,7 @@ An object of class \code{\link[=recursiveSegmentation]{recursiveSegmentation()}}
 \item nS: integer, final number of segments
 \item data: data frame, all data with their respective periods after segmentation
 \item shifts: data frame, all detected shift times and their uncertainty in numeric or POSIXct format in UTC
-\item tree: data frame, recursion tree.
+\item tree: \code{\link[=segmentationTree]{segmentationTree()}} object, recursion tree.
 \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
 \item results: list, intermediate results at each stage of the recursion.
 }

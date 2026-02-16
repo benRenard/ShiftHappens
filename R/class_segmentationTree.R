@@ -1,21 +1,84 @@
-#' Plot recursive segmentation tree
+#***************************************************************************----
+# Constructor ----
+
+#' segmentationTree object constructor.
 #'
-#' Plot the tree resulting from a recursive segmentation procedure
+#' Creates a new instance of a 'segmentationTree' object, used to
+#' store the tree of a recursive segmentation.
+#' @param index integer vector, node index.
+#' @param level integer vector, level of the recursive segmentation.
+#' @param parent integer vector, parent of the current node.
+#' @param nS integer vector, detected number of segments.
+#' @return An object of class [segmentationTree()]: data frame containing the input vectors as columns.
+#' @examples
+#' rec <- segmentationTree()
+#' @export
+segmentationTree<-function(index=integer(0),level=integer(0),parent=integer(0),nS=integer(0)){
+  o<-new_segmentationTree(index,level,parent,nS)
+  return(validate_segmentationTree(o))
+}
+
+#***************************************************************************----
+# is function ----
+
+#' segmentationTree object tester
 #'
-#' @param tree data frame, tree resulting from the call of Segmentation_Recursive
+#' Is an object of class 'segmentationTree'?
+#'
+#' @param o Object, an object.
+#' @return A logical equal to TRUE if class(o)== 'segmentationTree', FALSE otherwise.
+#' @keywords internal
+is.segmentationTree<-function(o){
+  return(any(class(o)=='segmentationTree'))
+}
+
+#***************************************************************************----
+# internal constructor ----
+
+new_segmentationTree<-function(index,level,parent,nS){
+  #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  # basic checks
+  stopifnot(is_integer(index))
+  stopifnot(is_integer(level))
+  stopifnot(is_integer(parent))
+  stopifnot(is_integer(nS))
+  stopifnot(!is.null(check_equal_length(index,level,parent,nS)))
+  # assemble object
+  o=data.frame(index=index,level=level,parent=parent,nS=nS)
+  class(o) <- c('segmentationTree','data.frame')
+  return(o)
+}
+
+#***************************************************************************----
+# validator ----
+
+validate_segmentationTree<-function(x){
+  # nothing to do
+  return(x)
+}
+
+#***************************************************************************----
+# plotting ----
+
+#' segmentationTree Plotter
+#'
+#' Plot a [segmentationTree()] object, resulting from a recursive segmentation procedure
+#' applied with function [Segmentation_Recursive()].
+#'
+#' @param x [segmentationTree()] object, tree resulting from a call to function [Segmentation_Recursive()]
+#' @param ... Optional arguments
 #'
 #' @return a ggplot
 #'
 #' @examples
 #' res=Segmentation_Recursive(obs=RhoneRiverAMAX$H)
-#' plot(res$data$obs,col=res$data$period)
-#' PlotTree(res$tree)
+#' plot(res$tree)
 #' @export
 #' @import ggplot2
 #' @importFrom stats rnorm setNames
 #' @importFrom scales viridis_pal
-PlotTree <- function(tree){
-  DF=tree
+plot.segmentationTree <- function(x,...){
+  DF=x
   n=NROW(DF)
   if(n<=1){
     message('No shift detected, no tree structure to plot')
@@ -61,7 +124,7 @@ PlotTree <- function(tree){
       DF$ystart[i]=DF$y[DF$parent[i]]-0.1
       DF$yend[i]=DF$y[i]+0.1
       # is node terminal?
-      DF$isTerminal[i]=sum(DF$parent==DF$indx[i])==0
+      DF$isTerminal[i]=sum(DF$parent==DF$index[i])==0
     }
   } else {
     DF$isTerminal[1]=TRUE
@@ -87,7 +150,7 @@ PlotTree <- function(tree){
                size=11, col='gray', shape=16, alpha=0.5)+
     # Text for the initial node
     geom_text(data=DF_initial_node,
-              aes(.data$x,.data$y,label=.data$indx),
+              aes(.data$x,.data$y,label=.data$index),
               size=4)+
     # Arrows to link the nodes
     geom_segment(aes(x=.data$xstart,y=.data$ystart,xend=.data$xend,yend=.data$yend),
@@ -95,7 +158,7 @@ PlotTree <- function(tree){
     # Plot nodes of the tree structure
     geom_point(aes(.data$x,.data$y,col=factor(.data$parent),shape=factor(.data$isTerminal)),
                size=8,alpha=0.8)+
-    geom_text(aes(.data$x,.data$y,label=.data$indx,fontface=.data$fontface),
+    geom_text(aes(.data$x,.data$y,label=.data$index,fontface=.data$fontface),
               size=4)+
     scale_color_manual(name='Parent node',
                        values=color_legend,

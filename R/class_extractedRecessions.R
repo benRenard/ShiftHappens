@@ -43,7 +43,7 @@ new_extractedRecessions<-function(date,time,H,uH,index){
   stopifnot(is.numeric(time))
   stopifnot(is.numeric(H))
   stopifnot(is.numeric(uH))
-  stopifnot(is.integer(index))
+  stopifnot(is_integer(index))
   stopifnot(!is.null(check_equal_length(date,time,H,uH,index)))
   # assemble object
   o=data.frame(date=date,time=time,H=H,uH=uH,index=index)

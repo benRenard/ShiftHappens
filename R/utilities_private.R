@@ -29,4 +29,14 @@ check_square_matrix <- function(x){
   }
 }
 
-
+#' Check integer
+#'
+#' Check is a number is an integer (in the mathematical sense, not the R one)
+#'
+#' @param x vector
+#' @return logical, TRUE if all values in x are integer, FALSE otherwise
+#' @keywords internal
+is_integer <- function(x){
+  out=all(x==as.integer(x))
+  return(out)
+}

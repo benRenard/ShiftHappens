@@ -38,7 +38,7 @@ Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uY=0*y,
   allRes=list() # store segmentation results for all nodes in a sequential list
   allFits=list() # store fitting results for all nodes in a sequential list
   k=0 # Main counter used to control indices in allRes
-  tree=data.frame() # store tree structure (parents - children relationship)
+  tree=segmentationTree() # store tree structure (parents - children relationship)
   p=1 # Auxiliary counter needed to keep track of children / parents indices
   level=0 # Recursion level. The tree is created level-by-level rather than branch-by-branch
   X=list(as.data.frame(x)) # List X of all nodes (each corresponding to a subseries of x) to be segmented at this level. Start with a unique node corresponding to the whole series
@@ -74,7 +74,7 @@ Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uY=0*y,
       # Save optimal number of segments
       nSopt=partial.segmentation$nS
       # Update recursion tree
-      tree=rbind(tree,data.frame(indx=k,level=level,parent=parents[j],nS=nSopt))
+      tree=rbind(tree,segmentationTree(index=k,level=level,parent=parents[j],nS=nSopt))
       # This was the trickiest part: keeping track of indices and parents
       keepgoing[j]=nSopt>1 # if nS=1, segmentation will not continue for this node which is hence terminal
       if(keepgoing[j]){ # Save results for segmentation at next level
@@ -180,7 +180,7 @@ Segmentation_Recursive <- function(obs,
   # Initialization
   allRes=list() # store segmentation results for all nodes in a sequential list
   k=0 # Main counter used to control indices in allRes
-  tree=data.frame() # store tree structure (parents - children relationship)
+  tree=segmentationTree() # store tree structure (parents - children relationship)
   p=1 # Auxiliary counter needed to keep track of children / parents indices
   level=0 # Recursion level. The tree is created level-by-level rather than branch-by-branch
   X=list(obs) # List of all nodes (each corresponding to a subseries of obs) to be segmented at this level. Start with a unique node corresponding to the whole series
@@ -212,7 +212,7 @@ Segmentation_Recursive <- function(obs,
       # Save optimal number of segments
       nSopt=partial.segmentation$nS
       # Update recursion tree
-      tree=rbind(tree,data.frame(indx=k,level=level,parent=parents[j],nS=nSopt))
+      tree=rbind(tree,segmentationTree(index=k,level=level,parent=parents[j],nS=nSopt))
       # This was the trickiest part: keeping track of indices and parents
       keepgoing[j]=nSopt>1 # if nS=1, segmentation will not continue for this node which is hence terminal
       if(keepgoing[j]){ # Save results for segmentation at next level

@@ -76,7 +76,7 @@ plot_recursiveModeling_data <- function(x,type=c('xy','ty','tx')){
   } else {
     stop('Unknown plot type')
   }
-  terminal=x$segmentation$tree$indx[x$segmentation$tree$nS==1]
+  terminal=x$segmentation$tree$index[x$segmentation$tree$nS==1]
   DF=c()
   for(i in 1:length(terminal)){
     node=terminal[i]
