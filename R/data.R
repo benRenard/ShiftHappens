@@ -55,5 +55,5 @@
 #'   \item{H}{Stage record}
 #' }
 #'
-#' @source\url{https://www.theses.fr/2021GRALU006}
+#' @source\url{https://theses.fr/2021GRALU006}
 "ArdecheRiverStage"

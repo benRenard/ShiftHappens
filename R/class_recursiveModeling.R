@@ -99,14 +99,14 @@ plot_recursiveModeling_data <- function(x,type=c('xy','ty','tx')){
   colourCount_obs=length(unique(DF$period))
   getPalette_obs=scales::viridis_pal(option='D')
   if(typ=='xy'){
-    g=ggplot(DF,aes(x=x))
+    g=ggplot(DF,aes(x=.data$x))
   } else {
-    g=ggplot(DF,aes(x=time))
+    g=ggplot(DF,aes(x=.data$time))
   }
   if(typ=='tx'){
-    g=g+geom_point(aes(y=x,group=period,color=period))
+    g=g+geom_point(aes(y=.data$x,group=.data$period,color=.data$period))
   } else {
-    g=g+geom_point(aes(y=obs,group=period,color=period))
+    g=g+geom_point(aes(y=.data$obs,group=.data$period,color=.data$period))
     if(any(DF$uY>0)){
       g=g+geom_errorbar(aes(y=.data$obs,
                             ymin=.data$obs-1.96*.data$uY,
@@ -115,7 +115,7 @@ plot_recursiveModeling_data <- function(x,type=c('xy','ty','tx')){
     }
   }
   if(typ=='xy'){
-    g=g+geom_line(aes(y=sim,group=period,color=period))
+    g=g+geom_line(aes(y=.data$sim,group=.data$period,color=.data$period))
   }
   g=g+scale_color_manual(values=getPalette_obs(colourCount_obs))
   g=g+labs(y=ylab,x=xlab,title='Segmented data')
