@@ -267,7 +267,6 @@ Segmentation_Recursive <- function(obs,
   # Tidy up returned data
   data=data[order(data$time),] # sort
   data$period=c(1,1+cumsum(diff(data$period)!=0))
-  # 2DO: review return object
   out=recursiveSegmentation(data=data,shifts=shift,tree=tree,
                             origin.date=allRes[[1]]$origin.date,
                             results=allRes)

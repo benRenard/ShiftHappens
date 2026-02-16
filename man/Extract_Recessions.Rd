@@ -49,7 +49,7 @@ nSlim=10 means that only one stage value every 10 is kept before applying the ex
 Useful for quick preliminary runs, but nSlim=1 is recommended for definitive runs.}
 }
 \value{
-A data frame with the following columns :
+An object of class \code{\link[=extractedRecessions]{extractedRecessions()}}, which is a data frame with the following columns:
 \enumerate{
 \item date: date
 \item time: within-recession time (in days), i.e. time is reset to zero at the beginning of each recession

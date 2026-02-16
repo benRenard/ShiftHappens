@@ -126,7 +126,7 @@ plot_recursiveModeling_data <- function(x,type=c('xy','ty','tx')){
 
 #' recursiveModeling plotter
 #'
-#' Plot a recursiveModeling object.
+#' Plot a [recursiveModeling()] object.
 #' @param x object of class recursiveModeling
 #' @param type string, type of plot
 #' @param dataPlotType string, type of data plot: 'xy' for a x-y scatterplot,

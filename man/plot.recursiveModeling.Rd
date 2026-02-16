@@ -25,7 +25,7 @@
 a ggplot
 }
 \description{
-Plot a recursiveModeling object.
+Plot a \code{\link[=recursiveModeling]{recursiveModeling()}} object.
 }
 \examples{
 x=Segmentation_RecursiveModeling(x=ArdecheRiverGaugings$H,y=ArdecheRiverGaugings$Q)
