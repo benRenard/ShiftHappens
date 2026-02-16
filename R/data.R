@@ -43,3 +43,17 @@
 #'
 #' @source \doi{10.1029/2018WR023389}
 "ArdecheRiverGaugings"
+
+#' Stage record of the Ardèche River at Meyras, France, provided by UHPC Grand Delta
+#'
+#' A data frame containing stages (H, in meters) for the Ardèche River
+#' at Meyras, France, from 07/11/2001 until 29/10/2018
+#'
+#' @format
+#' \describe{
+#'   \item{Date}{Date, in POSIXct format}
+#'   \item{H}{Stage record}
+#' }
+#'
+#' @source\url{https://www.theses.fr/2021GRALU006}
+"ArdecheRiverStage"
