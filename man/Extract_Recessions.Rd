@@ -62,7 +62,6 @@ A data frame with the following columns :
 Extract recessions from a stage record. NAs are not allowed.
 }
 \examples{
-
 rec=Extract_Recessions(time=ArdecheRiverStage$Date,H=ArdecheRiverStage$H,
                        nSlim=10) # used to speed-up example, but nSlim=1 is recommended.
 plot(ArdecheRiverStage$Date,ArdecheRiverStage$H,type='l',col='lightgray')

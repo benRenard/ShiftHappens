@@ -34,7 +34,6 @@
 #' @export
 #'
 #' @examples
-#'
 #' rec=Extract_Recessions(time=ArdecheRiverStage$Date,H=ArdecheRiverStage$H,
 #'                        nSlim=10) # used to speed-up example, but nSlim=1 is recommended.
 #' plot(ArdecheRiverStage$Date,ArdecheRiverStage$H,type='l',col='lightgray')
@@ -167,5 +166,68 @@ Extract_Recessions <- function(time,H,uH=0*H,
     mutate(time=as.numeric(difftime(.data$date,first(.data$date),units = "days")))
 
   return(out[c('date','time','H','uH','index')])
+}
+
+#' Plot recessions
+#'
+#' Plot recessions extracted using function [Extract_Recessions()]
+#'
+#' @param rec data frame, resulting from a call to function [Extract_Recessions()]
+#' @param type string, type of data plot: 'dh' for date (x) vs. stage (y),
+#'     'th' for time (x) vs. stage (y),
+#'     'dhmin' for date (x) vs. minimum stage of the recession (y).
+#' @param showAnnotation logical, show annotations on plot?#'
+#' @return A ggplot.
+#' @export
+#' @examples
+#' rec=Extract_Recessions(time=ArdecheRiverStage$Date,H=ArdecheRiverStage$H,
+#'                        nSlim=10) # used to speed-up example, but nSlim=1 is recommended.
+#' PlotRecessions(rec)
+#' @importFrom RColorBrewer brewer.pal
+#' @importFrom dplyr group_by summarise %>%
+#' @import ggplot2
+PlotRecessions <- function(rec,type=c('dh','th','dhmin'),showAnnotation=FALSE){
+  typ=match.arg(type)
+  colors=RColorBrewer::brewer.pal(10,'Paired')
+  if(typ %in% c('dh','th')){
+    if(typ == 'dh'){
+      g=ggplot(rec,aes(x=.data$date,y=.data$H,col=.data$index))
+      xlab='Date'
+      # position of annotations
+      ax=min(rec$date)
+      ay=max(rec$H)
+    } else {
+      g=ggplot(rec,aes(x=.data$time,y=.data$H,col=.data$index))
+      xlab='Time [days]'
+      # position of annotations
+      ax=quantile(rec$time,probs = 0.95)
+      ay=quantile(rec$H,probs = 0.99)
+    }
+    g=g+geom_point()
+    if(any(rec$uH>0)){
+      g=g+geom_errorbar(ymin=.data$H+stats::qnorm(0.025)*.data$uH,
+                        ymax=.data$H+stats::qnorm(0.975)*.data$uH)
+    }
+    g=g+theme_bw()+
+    labs(x = xlab,y = 'Stage [m]')+
+    guides(color='none')+
+    scale_color_gradientn(colors=colors)
+    if(showAnnotation){
+      g=g+annotate("text",x=ax,y=ay,label=paste0("Total points = ",NROW(rec)),hjust=0)+
+          annotate("text",x=ax,y=ay*0.9,label=paste0("Total recessions = ",max(rec$index)),hjust=0)
+    }
+  }
+  if(typ=='dhmin'){
+    DF <- rec %>% group_by(.data$index) %>%
+      summarise(H=min(.data$H),date=.data$date[which.min(.data$H)],uH=.data$uH[which.min(.data$H)])
+    g=ggplot(DF,aes(x=.data$date,y=.data$H))+geom_point()
+    if(any(DF$uH>0)){
+      g=g+geom_errorbar(ymin=.data$H+stats::qnorm(0.025)*.data$uH,
+                        ymax=.data$H+stats::qnorm(0.975)*.data$uH)
+    }
+    g=g +theme_bw()+
+      labs(x = 'Time [date]', y = 'Minimum recession stage H [m]')
+  }
+  return(g)
 }
 

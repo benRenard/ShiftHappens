@@ -27,7 +27,8 @@ Imports:
     scales,
     dplyr,
     tidyr,
-    patchwork
+    patchwork,
+    RColorBrewer
 Suggests: 
     knitr,
     rmarkdown
