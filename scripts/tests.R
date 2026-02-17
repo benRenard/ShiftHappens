@@ -23,7 +23,7 @@ plot(sg)
 # many shifts, recursive
 sg=Segmentation_Recursive(obs=RhoneRiverAMAX$uQ,time=RhoneRiverAMAX$Date)
 plot(sg)
-PlotTree(sg$tree)
+plot(sg$tree)
 shifts=getShifts(sg)
 for(i in 1:NCOL(shifts)){
   if(i==1){
@@ -36,6 +36,11 @@ for(i in 1:NCOL(shifts)){
 # Recursive modeling with default linear regression
 sg=Segmentation_RecursiveModeling(x=ArdecheRiverGaugings$H,
                                   y=ArdecheRiverGaugings$Q,
-                                  uY=ArdecheRiverGaugings$uQ)
+                                  uY=ArdecheRiverGaugings$uQ,
+                                  time=ArdecheRiverGaugings$Date)
 sg$segmentation$shifts
+plot(sg)
+plot(sg,dataPlotType='ty')
 plot(sg$segmentation)
+plot(sg$segmentation$tree)
+

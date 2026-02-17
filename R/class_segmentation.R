@@ -376,6 +376,11 @@ getShifts <- function(x,castAsDate=TRUE){
     ix=grep('tau',nm)
     col=nm[ix]
     out=x$mcmc[col]
+    if(castAsDate){
+      for(i in 1:NCOL(out)){
+        out[,i]=numeric_to_time(out[,i],origin.date=x$origin.date)
+      }
+    }
   } else if(inherits(x,'recursiveSegmentation')){
     its=unique(x$shifts$id_iteration)
     for(i in 1:length(its)){
@@ -383,16 +388,17 @@ getShifts <- function(x,castAsDate=TRUE){
       nm=names(mcmc)
       ix=grep('tau',nm)
       col=nm[ix]
-      if(i==1){out=mcmc[col]} else {out=cbind(out,mcmc[col])}
+      z=mcmc[col]
+      if(castAsDate){
+        for(j in 1:NCOL(z)){
+          z[,j]=numeric_to_time(z[,j],origin.date=x$results[[its[i]]]$origin.date)
+        }
+      }
+      if(i==1){out=z} else {out=cbind(out,z)}
     }
     names(out) <- paste0('tau',1:NCOL(out))
   } else {
     stop('this function only applies to objects of class simpleSegmentation, multipleSegmentation or recursiveSegmentation')
-  }
-  if(castAsDate){
-    for(i in 1:NCOL(out)){
-      out[,i]=numeric_to_time(out[,i],origin.date=x$origin.date)
-    }
   }
   return(out)
 }

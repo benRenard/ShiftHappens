@@ -116,6 +116,10 @@ plot_recursiveModeling_data <- function(x,type=c('xy','ty','tx')){
   }
   if(typ=='xy'){
     g=g+geom_line(aes(y=.data$sim,group=.data$period,color=.data$period))
+  } else {
+    if(NROW(x$segmentation$shifts)>0){
+      g=g+geom_vline(data=x$segmentation$shifts,aes(xintercept=.data$tau))
+    }
   }
   g=g+scale_color_manual(values=getPalette_obs(colourCount_obs))
   g=g+labs(y=ylab,x=xlab,title='Segmented data')
