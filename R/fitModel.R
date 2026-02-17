@@ -5,6 +5,8 @@
 #' @param x real matrix or data frame, predictors
 #' @param y real vector, predictand
 #' @param time vector (numeric or date), time
+#' @param uX real matrix or data frame, uncertainty in predictors (ignored)
+#' @param uY real vector, uncertainty in predictand (ignored)
 #' @inherit fittedModel return
 #' @export
 #' @importFrom stats lm sd coef
@@ -12,7 +14,7 @@
 #' f=Fit_LinearRegression(x=RhoneRiverAMAX$H,y=RhoneRiverAMAX$Q,time=RhoneRiverAMAX$Date)
 #' plot(f$data$x1,f$data$obs);lines(f$data$x1,f$data$sim,col='red')
 #' plot(f$data$time,f$data$res)
-Fit_LinearRegression <- function(x,y,time=1:NROW(y)){
+Fit_LinearRegression <- function(x,y,time=1:NROW(y),uX=0*x,uY=0*y){
   if(NROW(y)<=2){
     warning('NULL was returned because it not possible to perform linear regression with fewer than two points.')
     return(NULL)

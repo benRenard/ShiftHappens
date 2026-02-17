@@ -6,7 +6,12 @@
 #' @param x real matrix or data frame, predictors
 #' @param y real vector, predictand
 #' @param time vector (numeric or date), time
-#' @param uY real vector, uncertainty in predictand y (as a standard deviation)
+#' @param uX real matrix or data frame, uncertainty in predictors x (as a standard deviation).
+#'    May be ignored if the fitting function 'Fit_funk' does not handle input uncertainty
+#'    (which is often the case).
+#' @param uY real vector, uncertainty in predictand y (as a standard deviation).
+#'    May be ignored if the fitting function 'Fit_funk' does not handle output uncertainty
+#'    (which is often the case).
 #' @param Fit_funk function, function used to fit the model
 #' @param ... optional arguments passed to function Fit_funk
 #' @inheritParams Segmentation_Recursive
@@ -19,9 +24,9 @@
 #'                                    time=ArdecheRiverGaugings$Date)
 #' res$segmentation$shifts
 #' res$segmentation$tree
-#' plot(ArdecheRiverGaugings$H,ArdecheRiverGaugings$Q,col=res$segmentation$data$period)
+#' plot(res$data$x1,res$data$y,col=res$data$period)
 #' @export
-Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uY=0*y,
+Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uX=0*x,uY=0*y,
                                            nSmax=2,
                                            doQuickApprox=TRUE,
                                            nMin=ifelse(doQuickApprox,3,1),
@@ -34,6 +39,9 @@ Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uY=0*y,
   if(NROW(y)<2){
     stop('At least 2 observations are required',call.=FALSE)
   }
+  # Save initial dataset
+  data0=data.frame(time=time,x,y,uX,uY)
+  names(data0)=c('time',paste0('x',1:NCOL(x)),'y',paste0('uX',1:NCOL(uX)),'uY')
   # Initialization
   allRes=list() # store segmentation results for all nodes in a sequential list
   allFits=list() # store fitting results for all nodes in a sequential list
@@ -44,7 +52,8 @@ Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uY=0*y,
   X=list(as.data.frame(x)) # List X of all nodes (each corresponding to a subseries of x) to be segmented at this level. Start with a unique node corresponding to the whole series
   Y=list(as.data.frame(y)) # List Y of all nodes (each corresponding to a subseries of y) to be segmented at this level. Start with a unique node corresponding to the whole series
   TIME=list(as.data.frame(time)) # List of corresponding times
-  U=list(as.data.frame(uY)) # List of corresponding uncertainties
+  UX=list(as.data.frame(uX)) # List of X uncertainties
+  UY=list(as.data.frame(uY)) # List of Y uncertainties
   indices=c(1) # Vector containing the indices of each node - same size as X
   parents=c(0) # Vector containing the indices of the parents of each node - same size as X
   continue=TRUE # Logical determining whether recursion should continue
@@ -53,12 +62,12 @@ Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uY=0*y,
     level=level+1 # Increment recursion level
     nX=length(X) # Number of nodes at this level
     keepgoing=rep(NA,nX) # Should recursion continue for each node?
-    newX=newY=newTIME=newU=newIndices=newParents=c() # Will be used to update subseries, indices and parents at the end of each recursion level
+    newX=newY=newTIME=newUY=newUX=newIndices=newParents=c() # Will be used to update subseries, indices and parents at the end of each recursion level
     m=0 # Local counter used to control indices in the 4 vectors above => reset to 0 at each new level of the recursion
     for(j in 1:nX){ # Loop on each node
       k=k+1 # Increment main counter
       # Fit model
-      f=Fit_funk(x=X[[j]],y=Y[[j]],time=TIME[[j]])
+      f=Fit_funk(x=X[[j]],y=Y[[j]],time=TIME[[j]],uX=UX[[j]],uY=UY[[j]])
       if(NROW(Y[[j]])<nSmax*nMin){ # Can't segment, return default result
         partial.segmentation=multipleSegmentation(list(simpleSegmentation(time=f$data$time,obs=f$data$res,u=f$data$uRes)))
       } else { # Apply segmentation to subseries stored in node
@@ -82,13 +91,11 @@ Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uY=0*y,
           p=p+1 # Increment auxiliary counter
           m=m+1 # Increment local counter
           mask=partial.segmentation$results[[nSopt]]$data$period==i
-          # newX[[m]]=partial.segmentation$results[[nSopt]]$data$obs[mask] # Save ith segment (on a total of nS)
-          # newTIME[[m]]=partial.segmentation$results[[nSopt]]$data$time[mask] # Save corresponding times
-          # newU[[m]]=partial.segmentation$results[[nSopt]]$data$u[mask] # Save corresponding uncertainty
           newX[[m]]=as.data.frame(X[[j]][mask,]) # Save X for ith segment (on a total of nS)
           newY[[m]]=as.data.frame(Y[[j]][mask,]) # Save Y ith segment (on a total of nS)
           newTIME[[m]]=as.data.frame(TIME[[j]][mask,]) # Save corresponding times
-          newU[[m]]=as.data.frame(U[[j]][mask,]) # Save corresponding uncertainty
+          newUX[[m]]=as.data.frame(UX[[j]][mask,]) # Save corresponding X uncertainty
+          newUY[[m]]=as.data.frame(UY[[j]][mask,]) # Save corresponding Y uncertainty
           newParents[m]=indices[j] # At next level, the parent of this segment will be the index of current node
           newIndices[m]=p # At next level, the index of this segment will be p
         }
@@ -100,7 +107,8 @@ Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uY=0*y,
     X=newX
     Y=newY
     TIME=newTIME
-    U=newU
+    UX=newUX
+    UY=newUY
     parents=newParents
     indices=newIndices
   }
@@ -135,9 +143,10 @@ Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uY=0*y,
   # Tidy up returned data
   data=data[order(data$time),] # sort
   data$period=c(1,1+cumsum(diff(data$period)!=0))
+  data0$period=as.factor(data$period)
   # Assemble return object
   seg=recursiveSegmentation(data=data,shifts=shift,tree=tree,results=allRes)
-  out=recursiveModeling(segmentation=seg,fit=allFits)
+  out=recursiveModeling(data=data0,segmentation=seg,fit=allFits)
   return(out)
 }
 

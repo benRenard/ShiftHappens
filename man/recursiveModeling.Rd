@@ -5,11 +5,14 @@
 \title{recursiveModeling object constructor.}
 \usage{
 recursiveModeling(
+  data = data.frame(),
   segmentation = recursiveSegmentation(),
   fit = list(fittedModel())
 )
 }
 \arguments{
+\item{data}{data frame, initial dataset}
+
 \item{segmentation}{\code{\link[=recursiveSegmentation]{recursiveSegmentation()}} object, segmentation results}
 
 \item{fit}{list of \code{\link[=fittedModel]{fittedModel()}} objects, fitted model results}
@@ -17,6 +20,7 @@ recursiveModeling(
 \value{
 An object of class \code{\link[=recursiveModeling]{recursiveModeling()}}, containing the following fields:
 \enumerate{
+\item data: a data frame containing the original dataset used as input of the recursive modeling
 \item segmentation: an object of class \code{\link[=recursiveSegmentation]{recursiveSegmentation()}},
 containing the results of the segmentation of residuals
 \item fit: a list of objects of class \code{\link[=fittedModel]{fittedModel()}},

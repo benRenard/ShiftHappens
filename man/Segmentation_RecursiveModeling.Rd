@@ -8,6 +8,7 @@ Segmentation_RecursiveModeling(
   x,
   y,
   time = 1:NROW(y),
+  uX = 0 * x,
   uY = 0 * y,
   nSmax = 2,
   doQuickApprox = TRUE,
@@ -30,7 +31,13 @@ Segmentation_RecursiveModeling(
 
 \item{time}{vector (numeric or date), time}
 
-\item{uY}{real vector, uncertainty in predictand y (as a standard deviation)}
+\item{uX}{real matrix or data frame, uncertainty in predictors x (as a standard deviation).
+May be ignored if the fitting function 'Fit_funk' does not handle input uncertainty
+(which is often the case).}
+
+\item{uY}{real vector, uncertainty in predictand y (as a standard deviation).
+May be ignored if the fitting function 'Fit_funk' does not handle output uncertainty
+(which is often the case).}
 
 \item{nSmax}{integer, maximum number of segments to assess}
 
@@ -74,5 +81,5 @@ res=Segmentation_RecursiveModeling(x=ArdecheRiverGaugings$H,
                                    time=ArdecheRiverGaugings$Date)
 res$segmentation$shifts
 res$segmentation$tree
-plot(ArdecheRiverGaugings$H,ArdecheRiverGaugings$Q,col=res$segmentation$data$period)
+plot(res$data$x1,res$data$y,col=res$data$period)
 }

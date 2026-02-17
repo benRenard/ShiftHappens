@@ -5,10 +5,12 @@
 #'
 #' Creates a new instance of a 'recursiveModeling' object, used to
 #' store the results of a recursive modeling segmentation
+#' @param data data frame, initial dataset
 #' @param segmentation [recursiveSegmentation()] object, segmentation results
 #' @param fit list of [fittedModel()] objects, fitted model results
 #' @return An object of class [recursiveModeling()], containing the following fields:
 #' \enumerate{
+#'   \item data: a data frame containing the original dataset used as input of the recursive modeling
 #'   \item segmentation: an object of class [recursiveSegmentation()],
 #'       containing the results of the segmentation of residuals
 #'   \item fit: a list of objects of class [fittedModel()],
@@ -17,8 +19,8 @@
 #' @examples
 #' rec <- recursiveModeling()
 #' @export
-recursiveModeling<-function(segmentation=recursiveSegmentation(),fit=list(fittedModel())){
-  o<-new_recursiveModeling(segmentation,fit)
+recursiveModeling<-function(data=data.frame(),segmentation=recursiveSegmentation(),fit=list(fittedModel())){
+  o<-new_recursiveModeling(data,segmentation,fit)
   return(validate_recursiveModeling(o))
 }
 
@@ -39,9 +41,10 @@ is.recursiveModeling<-function(o){
 #***************************************************************************----
 # internal constructor ----
 
-new_recursiveModeling<-function(segmentation,fit){
+new_recursiveModeling<-function(data,segmentation,fit){
   #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   # basic checks
+  stopifnot(is.data.frame(data))
   stopifnot(inherits(segmentation,'recursiveSegmentation'))
   stopifnot(is.list(fit))
 
@@ -49,7 +52,7 @@ new_recursiveModeling<-function(segmentation,fit){
     stopifnot(inherits(fit[[i]],'fittedModel'))
   }
   # assemble object
-  o=list(segmentation=segmentation,fit=fit)
+  o=list(data=data,segmentation=segmentation,fit=fit)
   class(o) <- 'recursiveModeling'
   return(o)
 }
@@ -78,45 +81,59 @@ plot_recursiveModeling_data <- function(x,type=c('xy','ty','tx')){
   }
   terminal=x$segmentation$tree$index[x$segmentation$tree$nS==1]
   DF=c()
+  nX=length(grep('x',names(x$data)))
   for(i in 1:length(terminal)){
     node=terminal[i]
     foo=x$fit[[node]]$data
-    nX=NCOL(foo)-5
-    if(nX==1){
-      names(foo)[2]='x'
-      DF=rbind(DF,cbind(foo,period=i))
-    } else if(nX >1) {
-
-    } else {
-
-    }
+    DF=rbind(DF,cbind(foo,period=i))
   }
   DF$period=as.factor(DF$period)
-  # 2DO: review fitModel object to store original data in a standardized way, including uY/uX,
-  # hence allowing plotting error bars
+  names(DF)[1+(1:nX)]=paste0('x',1:nX)
   # 2DO: handle multi-X case
+  if(nX>1 & typ %in% c('xy','tx')){
+    warning(paste('This plotting function does not handle multiple predictors yet.',
+                  'Only the first predictor x1 is represented in the plot'))
+  }
   DF$uY=0
   colourCount_obs=length(unique(DF$period))
   getPalette_obs=scales::viridis_pal(option='D')
   if(typ=='xy'){
-    g=ggplot(DF,aes(x=.data$x))
-  } else {
-    g=ggplot(DF,aes(x=.data$time))
-  }
-  if(typ=='tx'){
-    g=g+geom_point(aes(y=.data$x,group=.data$period,color=.data$period))
-  } else {
-    g=g+geom_point(aes(y=.data$obs,group=.data$period,color=.data$period))
-    if(any(DF$uY>0)){
-      g=g+geom_errorbar(aes(y=.data$obs,
-                            ymin=.data$obs-1.96*.data$uY,
-                            ymax=.data$obs+1.96*.data$uY,
+    g=ggplot(DF)+
+      geom_point(aes(x=.data$x1,y=.data$obs,group=.data$period,color=.data$period))+
+      geom_line(aes(x=.data$x1,y=.data$sim,group=.data$period,color=.data$period))
+    if(any(x$data$uY>0)){
+      g=g+geom_errorbar(data=x$data,aes(x=.data$x1,
+                                        ymin=.data$y-1.96*.data$uY,
+                                        ymax=.data$y+1.96*.data$uY,
+                                        color=.data$period,group=.data$period))
+    }
+    if(any(x$data$uX1>0)){
+      g=g+geom_errorbarh(data=x$data,aes(y=.data$y,
+                                         xmin=.data$x1-1.96*.data$uX1,
+                                         xmax=.data$x1+1.96*.data$uX1,
+                                         color=.data$period,group=.data$period))
+    }
+  } else if(typ=='ty') {
+    g=ggplot(x$data)+
+      geom_point(aes(x=.data$time,y=.data$y,group=.data$period,color=.data$period))
+    if(any(x$data$uY>0)){
+      g=g+geom_errorbar(aes(x=.data$time,
+                            ymin=.data$y-1.96*.data$uY,
+                            ymax=.data$y+1.96*.data$uY,
                             color=.data$period,group=.data$period))
     }
-  }
-  if(typ=='xy'){
-    g=g+geom_line(aes(y=.data$sim,group=.data$period,color=.data$period))
-  } else {
+    if(NROW(x$segmentation$shifts)>0){
+      g=g+geom_vline(data=x$segmentation$shifts,aes(xintercept=.data$tau))
+    }
+  } else if(typ=='tx'){
+    g=ggplot(x$data)+
+      geom_point(aes(x=.data$time,y=.data$x1,group=.data$period,color=.data$period))
+    if(any(x$data$uX1>0)){
+      g=g+geom_errorbar(aes(x=.data$time,
+                            ymin=.data$x1-1.96*.data$uX1,
+                            ymax=.data$x1+1.96*.data$uX1,
+                            color=.data$period,group=.data$period))
+    }
     if(NROW(x$segmentation$shifts)>0){
       g=g+geom_vline(data=x$segmentation$shifts,aes(xintercept=.data$tau))
     }

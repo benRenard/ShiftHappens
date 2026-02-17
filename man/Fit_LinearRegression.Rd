@@ -4,7 +4,7 @@
 \alias{Fit_LinearRegression}
 \title{Linear regression}
 \usage{
-Fit_LinearRegression(x, y, time = 1:NROW(y))
+Fit_LinearRegression(x, y, time = 1:NROW(y), uX = 0 * x, uY = 0 * y)
 }
 \arguments{
 \item{x}{real matrix or data frame, predictors}
@@ -12,6 +12,10 @@ Fit_LinearRegression(x, y, time = 1:NROW(y))
 \item{y}{real vector, predictand}
 
 \item{time}{vector (numeric or date), time}
+
+\item{uX}{real matrix or data frame, uncertainty in predictors (ignored)}
+
+\item{uY}{real vector, uncertainty in predictand (ignored)}
 }
 \value{
 An object of class \code{\link[=fittedModel]{fittedModel()}}, containing the following fields:
