@@ -136,9 +136,7 @@ Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uY=0*y,
   data=data[order(data$time),] # sort
   data$period=c(1,1+cumsum(diff(data$period)!=0))
   # Assemble return object
-  seg=recursiveSegmentation(data=data,shifts=shift,tree=tree,
-                            origin.date=allRes[[1]]$origin.date,
-                            results=allRes)
+  seg=recursiveSegmentation(data=data,shifts=shift,tree=tree,results=allRes)
   out=recursiveModeling(segmentation=seg,fit=allFits)
   return(out)
 }
@@ -267,9 +265,7 @@ Segmentation_Recursive <- function(obs,
   # Tidy up returned data
   data=data[order(data$time),] # sort
   data$period=c(1,1+cumsum(diff(data$period)!=0))
-  out=recursiveSegmentation(data=data,shifts=shift,tree=tree,
-                            origin.date=allRes[[1]]$origin.date,
-                            results=allRes)
+  out=recursiveSegmentation(data=data,shifts=shift,tree=tree,results=allRes)
   return(out)
 }
 

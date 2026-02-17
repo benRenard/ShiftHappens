@@ -58,7 +58,6 @@ An object of class \code{\link[=recursiveSegmentation]{recursiveSegmentation()}}
 \item data: data frame, all data with their respective periods after segmentation
 \item shifts: data frame, all detected shift times and their uncertainty in numeric or POSIXct format in UTC
 \item tree: \code{\link[=segmentationTree]{segmentationTree()}} object, recursion tree.
-\item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
 \item results: list, intermediate results at each stage of the recursion.
 }
 }

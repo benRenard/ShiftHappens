@@ -71,7 +71,6 @@ multipleSegmentation<-function(results){
 #' @param data data frame, data summary.
 #' @param shifts data frame, detected shifts (with columns tau, I95_lower and I95_upper)
 #' @param tree [segmentationTree()] object, recursion tree.
-#' @param origin.date dates origin (useful for date conversions)
 #' @param results list, vector of 'multipleSegmentation' objects, segmentation results at each step of the recursion
 #'
 #' @return An object of class [recursiveSegmentation()], containing the following fields:
@@ -80,15 +79,14 @@ multipleSegmentation<-function(results){
 #'   \item data: data frame, all data with their respective periods after segmentation
 #'   \item shifts: data frame, all detected shift times and their uncertainty in numeric or POSIXct format in UTC
 #'   \item tree: [segmentationTree()] object, recursion tree.
-#'   \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
 #'   \item results: list, intermediate results at each stage of the recursion.
 #' }
 #' @examples
 #' sg <- recursiveSegmentation()
 #' @export
-recursiveSegmentation<-function(data=data.frame(),shifts=data.frame(),tree=segmentationTree(),
-                                origin.date=NULL,results=list()){
-  o<-new_recursiveSegmentation(data,shifts,tree,origin.date,results)
+recursiveSegmentation<-function(data=data.frame(),shifts=data.frame(),
+                                tree=segmentationTree(),results=list()){
+  o<-new_recursiveSegmentation(data,shifts,tree,results)
   return(validate_recursiveSegmentation(o))
 }
 
@@ -181,7 +179,7 @@ new_multipleSegmentation<-function(results){
   return(o)
 }
 
-new_recursiveSegmentation<-function(data,shifts,tree,origin.date,results){
+new_recursiveSegmentation<-function(data,shifts,tree,results){
   #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   # basic checks
   stopifnot(is.data.frame(data))
@@ -189,8 +187,8 @@ new_recursiveSegmentation<-function(data,shifts,tree,origin.date,results){
   stopifnot(is.segmentationTree(tree))
   stopifnot(is.list(results))
   # assemble object
-  o=list(nS=NROW(shifts)+1,data=data,shifts=shifts,tree=tree,
-         origin.date=origin.date,results=results)
+  o=list(nS=NROW(shifts)+1,data=data,shifts=shifts,
+         tree=tree,results=results)
   class(o) <- 'recursiveSegmentation'
   return(o)
 }
