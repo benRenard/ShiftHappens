@@ -14,21 +14,6 @@ check_equal_length <- function(...) {
   }
 }
 
-#' Check square matrix
-#'
-#' Check whether a matrix is square
-#'
-#' @param x matrix
-#' @return logical, null if matrix is not square
-#' @keywords internal
-check_square_matrix <- function(x){
-  if(ncol(x)==nrow(x)){
-    return('ok')
-  }else{
-    return(NULL)
-  }
-}
-
 #' Check integer
 #'
 #' Check is a number is an integer (in the mathematical sense, not the R one)

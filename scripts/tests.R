@@ -44,3 +44,10 @@ plot(sg,dataPlotType='ty')
 plot(sg$segmentation)
 plot(sg$segmentation$tree)
 
+# Recession tools
+rec=Extract_Recessions(time=ArdecheRiverStage$Date,
+                       H=ArdecheRiverStage$H,
+                       uH=rep(0.1,NROW(ArdecheRiverStage)))
+plot(rec)
+plot(rec,type='th')
+plot(rec,type='dhmin')

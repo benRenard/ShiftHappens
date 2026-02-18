@@ -100,8 +100,8 @@ plot.extractedRecessions <- function(x,type=c('dh','th','dhmin'),showAnnotation=
     }
     g=g+geom_point()
     if(any(rec$uH>0)){
-      g=g+geom_errorbar(ymin=.data$H+stats::qnorm(0.025)*.data$uH,
-                        ymax=.data$H+stats::qnorm(0.975)*.data$uH)
+      g=g+geom_errorbar(aes(ymin=.data$H+stats::qnorm(0.025)*.data$uH,
+                            ymax=.data$H+stats::qnorm(0.975)*.data$uH))
     }
     g=g+theme_bw()+
       labs(x = xlab,y = 'Stage [m]')+
@@ -117,8 +117,8 @@ plot.extractedRecessions <- function(x,type=c('dh','th','dhmin'),showAnnotation=
       summarise(H=min(.data$H),date=.data$date[which.min(.data$H)],uH=.data$uH[which.min(.data$H)])
     g=ggplot(DF,aes(x=.data$date,y=.data$H))+geom_point()
     if(any(DF$uH>0)){
-      g=g+geom_errorbar(ymin=.data$H+stats::qnorm(0.025)*.data$uH,
-                        ymax=.data$H+stats::qnorm(0.975)*.data$uH)
+      g=g+geom_errorbar(aes(ymin=.data$H+stats::qnorm(0.025)*.data$uH,
+                            ymax=.data$H+stats::qnorm(0.975)*.data$uH))
     }
     g=g +theme_bw()+
       labs(x = 'Time [date]', y = 'Minimum recession stage H [m]')
