@@ -67,7 +67,11 @@ Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uX=0*x,uY=0*y,
     for(j in 1:nX){ # Loop on each node
       k=k+1 # Increment main counter
       # Fit model
-      f=Fit_funk(x=X[[j]],y=Y[[j]],time=TIME[[j]],uX=UX[[j]],uY=UY[[j]])
+      f=Fit_funk(x=X[[j]],y=Y[[j]],time=TIME[[j]],uX=UX[[j]],uY=UY[[j]],...)
+      if(is.null(f)){
+        warning('Problem calling function Fit_funk')
+        return()
+      }
       if(NROW(Y[[j]])<nSmax*nMin){ # Can't segment, return default result
         partial.segmentation=multipleSegmentation(list(simpleSegmentation(time=f$data$time,obs=f$data$res,u=f$data$uRes)))
       } else { # Apply segmentation to subseries stored in node
@@ -77,6 +81,7 @@ Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uX=0*x,uY=0*y,
                                           mcmc_options=mcmc_options,mcmc_cooking=mcmc_cooking,
                                           temp.folder,mu_prior=mu_prior)
       }
+      if(is.null(partial.segmentation)){return()}
       # Save results for this node
       allRes[[k]]=partial.segmentation
       allFits[[k]]=f
@@ -214,6 +219,7 @@ Segmentation_Recursive <- function(obs,
                                           mcmc_options=mcmc_options,mcmc_cooking=mcmc_cooking,
                                           temp.folder,mu_prior=mu_prior)
       }
+      if(is.null(partial.segmentation)){return()}
       # Save results for this node
       allRes[[k]]=partial.segmentation
       # Save optimal number of segments
@@ -347,6 +353,7 @@ Segmentation <- function(obs,
                                       mcmc_options=mcmc_options,mcmc_cooking=mcmc_cooking,
                                       temp.folder=temp.folder,mu_prior=mu_args,
                                       doQuickApprox=quick,varShift=varShift,alpha=alpha)
+      if(is.null(res[[i]])){return()}
       DICs [i] <- res[[i]]$DIC
     }
   }
@@ -510,16 +517,16 @@ Segmentation_Engine <- function(obs,
                                                                              prior.dist = "FlatPrior+"))))
 
     # Run BaM executable
-    RBaM::BaM(mod=mod,
-              data=data,
-              workspace=temp.folder,
-              mcmc=mcmc_options,
-              cook = mcmc_cooking,
-              remnant = remnant_prior)
+    ok=try(RBaM::BaM(mod=mod,data=data,workspace=temp.folder,
+              mcmc=mcmc_options,cook = mcmc_cooking,remnant = remnant_prior))
+    if(inherits(ok, "try-error")){return()}
 
-    mcmc.segm    <- utils::read.table(file=file.path(temp.folder,mcmc_cooking$result.fname),header=TRUE)
-    mcmc.DIC     <- utils::read.table(file=file.path(temp.folder,"Results_DIC.txt"),header=FALSE)
-    resid.segm   <- utils::read.table(file=file.path(temp.folder,"Results_Residuals.txt"),header=TRUE)
+    ok=try({
+      mcmc.segm    <- utils::read.table(file=file.path(temp.folder,mcmc_cooking$result.fname),header=TRUE)
+      mcmc.DIC     <- utils::read.table(file=file.path(temp.folder,"Results_DIC.txt"),header=FALSE)
+      resid.segm   <- utils::read.table(file=file.path(temp.folder,"Results_Residuals.txt"),header=TRUE)
+    })
+    if(inherits(ok, "try-error")){return()}
 
     colnames(mcmc.segm)[ncol(mcmc.segm)-1] <- "structural_sd"
 
