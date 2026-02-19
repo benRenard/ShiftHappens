@@ -112,6 +112,7 @@ Fit_BaRatin <- function(x,y,time=1:NROW(y),uX=0*x,uY=0*y,
 #'   patchwork::wrap_plots(plot(sg,type='fits'))
 #' }
 #' @export
+#' @importFrom patchwork wrap_plots
 Segmentation_BaRatin <- function(H,Q,time=1:NROW(Q),uH=0*H,uQ=0*Q,
                         flavor=c('BaRatin','BaRatinBAC'),
                         controlMatrix=matrix(1),

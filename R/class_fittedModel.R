@@ -131,7 +131,7 @@ plot.fittedModel <- function(x,type=c('xy','ty','tres','yysim'),...){
       geom_line(aes(x=.data$x1,y=.data$ysim))+
       geom_point(aes(x=.data$x1,y=.data$y))
     if(any(DF$uY>0)){
-      g=g+geom_linerange(aes(x=.data$x1,ymin=.data$y-1.96*.data$uY,
+      g=g+geom_errorbar(aes(x=.data$x1,ymin=.data$y-1.96*.data$uY,
                             ymax=.data$y+1.96*.data$uY),width=0)
     }
     if(any(DF$uX1>0)){

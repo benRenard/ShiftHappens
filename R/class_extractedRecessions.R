@@ -60,6 +60,28 @@ validate_extractedRecessions<-function(x){
 }
 
 #***************************************************************************----
+# utilities ----
+
+#' Recessions minima
+#'
+#' Get recessions lowest point from a [extractedRecessions()] object.
+#' @param x object of class extractedRecessions, resulting from a call to function [Extract_Recessions()]
+#' @return A data frame containing the minimum value of each recession, along with
+#'     the corresponding dates and uncertainties.
+#' @export
+#' @examples
+#' rec=Extract_Recessions(time=ArdecheRiverStage$Date,H=ArdecheRiverStage$H,
+#'                        nSlim=10) # used to speed-up example, but nSlim=1 is recommended.
+#' lows=getRecessionMin(rec)
+#' plot(lows$date,lows$H)
+#' @importFrom dplyr group_by summarise %>%
+getRecessionMin <- function(x){
+  out=x %>% group_by(.data$index) %>%
+    summarise(H=min(.data$H),date=.data$date[which.min(.data$H)],uH=.data$uH[which.min(.data$H)])
+  return(out)
+}
+
+#***************************************************************************----
 # plotting ----
 
 #' extractedRecessions plotter
@@ -113,8 +135,7 @@ plot.extractedRecessions <- function(x,type=c('dh','th','dhmin'),showAnnotation=
     }
   }
   if(typ=='dhmin'){
-    DF <- rec %>% group_by(.data$index) %>%
-      summarise(H=min(.data$H),date=.data$date[which.min(.data$H)],uH=.data$uH[which.min(.data$H)])
+    DF <- getRecessionMin(rec)
     g=ggplot(DF,aes(x=.data$date,y=.data$H))+geom_point()
     if(any(DF$uH>0)){
       g=g+geom_errorbar(aes(ymin=.data$H+stats::qnorm(0.025)*.data$uH,
