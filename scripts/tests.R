@@ -1,23 +1,25 @@
 library(ShiftHappens)
 library(ggplot2)
+library(patchwork)
 library(RBaM)
-# default
+
+# Recursive segmentation using default
 sg=Segmentation_Recursive(obs=RhoneRiverAMAX$H)
 plot(sg)
 
-# use dates
+# Use explicit dates
 sg=Segmentation_Recursive(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Date)
 plot(sg)
 
-# use uncertainties
+# Use uncertainties
 sg=Segmentation_Recursive(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Date,u=RhoneRiverAMAX$uH)
 plot(sg)
 
-# no shift
+# No-shift case
 sg=Segmentation_Recursive(obs=RhoneRiverAMAX$Q,time=RhoneRiverAMAX$Date,u=RhoneRiverAMAX$uQ)
 plot(sg)
 
-# many shifts, non-recursive
+# Many shifts (nSmax=7), non-recursive, using BaM
 sg=Segmentation(obs=RhoneRiverAMAX$uQ,time=RhoneRiverAMAX$Date,nSmax=7)
 if(!is.null(sg)){
   plot(sg$DICs)
@@ -25,7 +27,7 @@ if(!is.null(sg)){
   plot(sg)
 }
 
-# many shifts, recursive
+# Many shifts, recursive (does not use BaM)
 sg=Segmentation_Recursive(obs=RhoneRiverAMAX$uQ,time=RhoneRiverAMAX$Date)
 plot(sg)
 plot(sg$tree)
@@ -44,10 +46,11 @@ sg=Segmentation_RecursiveModeling(x=ArdecheRiverGaugings$H,
                                   uY=ArdecheRiverGaugings$uQ,
                                   time=ArdecheRiverGaugings$Date)
 sg$segmentation$shifts
-plot(sg)
-plot(sg,dataPlotType='ty')
-plot(sg$segmentation)
-plot(sg$segmentation$tree)
+plot(sg) # default 'xy' scatterplot for recursiveModeling object
+plot(sg,dataPlotType='ty') # 'time-y' alternative plot in the data panel
+wrap_plots(plot(sg,type='fits')) # plot fitted model in each terminal node
+plot(sg$segmentation) # plot segmentation object contained in sg
+plot(sg$segmentation$tree) # plot segmentation tree contained in sg
 
 # Recursive modeling with BaRatin
 controlMatrix=rbind(c(1,0,0),c(0,1,0),c(0,1,1))

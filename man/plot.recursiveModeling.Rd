@@ -6,7 +6,7 @@
 \usage{
 \method{plot}{recursiveModeling}(
   x,
-  type = c("both", "data", "shifts"),
+  type = c("both", "data", "shifts", "fits"),
   dataPlotType = c("xy", "ty", "tx"),
   ...
 )
@@ -14,7 +14,9 @@
 \arguments{
 \item{x}{object of class recursiveModeling}
 
-\item{type}{string, type of plot}
+\item{type}{string, type of plot: 'both' for a data panel on top and a shift panel on the bottom,
+'data' for the data panel only, 'shifts' for the shift panel only,
+'fits' for a plot of fitted models in each terminal mode.}
 
 \item{dataPlotType}{string, type of data plot: 'xy' for a x-y scatterplot,
 'ty' for a time series plot of y, 'tx' for a time series plot of x}
@@ -22,7 +24,7 @@
 \item{...}{Optional arguments}
 }
 \value{
-a ggplot
+a ggplot (or a list of ggplots if type='fits')
 }
 \description{
 Plot a \code{\link[=recursiveModeling]{recursiveModeling()}} object.

@@ -23,10 +23,9 @@ Fit_LinearRegression <- function(x,y,time=1:NROW(y),uX=0*x,uY=0*y){
   mod <- stats::lm(as.matrix(y)~as.matrix(x))
   # Assemble results
   uRes=stats::sd(mod$residuals)
-  vYsim=uRes^2-uY^2;vYsim[vYsim<0]=0
   pars=stats::coef(mod)
   out=fittedModel(time=time,x=x,y=y,ysim=mod$fitted.values,res=mod$residuals,
-                  uX=uX,uY=uY,uYsim=sqrt(vYsim),uRes=rep(uRes,length(y)),
+                  uX=uX,uY=uY,uYsim=rep(uRes,length(y)),uRes=rep(uRes,length(y)),
                   parameters=as.numeric(pars))
   return(out)
 }

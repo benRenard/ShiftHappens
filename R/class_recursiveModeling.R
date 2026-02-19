@@ -147,16 +147,18 @@ plot_recursiveModeling_data <- function(x,type=c('xy','ty','tx')){
 #'
 #' Plot a [recursiveModeling()] object.
 #' @param x object of class recursiveModeling
-#' @param type string, type of plot
+#' @param type string, type of plot: 'both' for a data panel on top and a shift panel on the bottom,
+#'     'data' for the data panel only, 'shifts' for the shift panel only,
+#'     'fits' for a plot of fitted models in each terminal mode.
 #' @param dataPlotType string, type of data plot: 'xy' for a x-y scatterplot,
 #'     'ty' for a time series plot of y, 'tx' for a time series plot of x
 #' @param ... Optional arguments
-#' @return a ggplot
+#' @return a ggplot (or a list of ggplots if type='fits')
 #' @examples
 #' x=Segmentation_RecursiveModeling(x=ArdecheRiverGaugings$H,y=ArdecheRiverGaugings$Q)
 #' plot(x)
 #' @export
-plot.recursiveModeling <- function(x,type=c('both','data','shifts'),dataPlotType=c('xy','ty','tx'),...){
+plot.recursiveModeling <- function(x,type=c('both','data','shifts','fits'),dataPlotType=c('xy','ty','tx'),...){
   typ=match.arg(type)
   dtyp=match.arg(dataPlotType)
   if(typ=='data'){
@@ -169,6 +171,12 @@ plot.recursiveModeling <- function(x,type=c('both','data','shifts'),dataPlotType
     g=wrap_plots(g1+labs(title='Segmented data and shifts'),
                  g2+labs(title=NULL),ncol=1)+
       plot_layout(axes='collect_x')
+  } else if(typ=='fits'){
+    terminal=x$segmentation$tree$index[x$segmentation$tree$nS==1]
+    g=vector('list',length(terminal))
+    for(i in 1:length(terminal)){
+      g[[i]]=plot(x$fit[[terminal[i]]])+labs(title=paste('Node',terminal[i]))
+    }
   } else {
     g=NULL
   }

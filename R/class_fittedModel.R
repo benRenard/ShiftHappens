@@ -169,6 +169,6 @@ plot.fittedModel <- function(x,type=c('xy','ty','tres','yysim'),...){
     g=g+coord_equal(xlim=lim,ylim=lim)
   }
   g=g+labs(y=ylab,x=xlab)
-  g=g+theme_bw()
+  g=g+theme_bw()+theme(plot.title=element_text(hjust=0.5,face='bold',size=15))
   return(g)
 }
