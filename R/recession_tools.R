@@ -165,3 +165,61 @@ Extract_Recessions <- function(time,H,uH=0*H,
     mutate(time=as.numeric(difftime(.data$date,first(.data$date),units = "days")))
   return(extractedRecessions(date=out$date,time=out$time,H=out$H,uH=out$uH,index=out$index))
 }
+
+
+rec=Extract_Recessions(time=ArdecheRiverStage$Date,H=ArdecheRiverStage$H,nSlim=10)
+
+equation='alpha_k*exp(-lambda*t^c)+beta_k'
+mcmc_options=RBaM::mcmcOptions(nAdapt=20,nCycles=50)
+mcmc_cooking=RBaM::mcmcCooking()
+remnant=list(RBaM::remnantErrorModel(funk='Constant',par=list(parameter('sigma',stats::sd(rec$H),'FlatPrior+'))))
+temp.folder=file.path(tempdir(),'Recessions')
+
+
+D=RBaM::dataset(X=data.frame(t=rec$time),Y=data.frame(H=rec$H),
+                Yu=data.frame(uH=rec$uH),VAR.indx=data.frame(index=rec$index),
+                data.dir=temp.folder)
+Ncurves=max(rec$index)
+# Stable parameters
+lambda=RBaM::parameter(name='lambda',
+                       init=log(2)/stats::median(rec$time), # see https://en.wikipedia.org/wiki/Exponential_decay
+                       prior.dist='FlatPrior+')
+c=RBaM::parameter(name='c',
+                  init=1,
+                  prior.dist='FlatPrior+')
+# Variable parameters
+foo=rec %>% group_by(.data$index) %>% summarise(minH=min(.data$H),maxH=max(.data$H))
+beta_k=RBaM::parameter_VAR(name='beta_k',index='index',d=D,
+                           # The next 3 lines specify the parameter's initial guess and prior FOR EACH INDEX
+                           init=foo$minH, # first guesses
+                           prior.dist=rep('FlatPrior',Ncurves),
+                           prior.par =rep(list(NULL), Ncurves)) # prior distributions
+alpha_k=RBaM::parameter_VAR(name='alpha_k',index='index',d=D,
+                            # The next 3 lines specify the parameter's initial guess and prior FOR EACH INDEX
+                            init=foo$maxH-foo$minH,
+                            prior.dist=rep('FlatPrior+',Ncurves),
+                            prior.par =rep(list(NULL), Ncurves))
+# Use xtraModelInfo to pass the names of the inputs and the formulas
+xtra=RBaM::xtraModelInfo(object=list(inputs=c('t'),formulas=equation))
+# model
+M=RBaM::model(ID='TextFile',nX=1,nY=1,par=list(alpha_k,lambda,c,beta_k),xtra=xtra)
+# Run BaM executable to calibrate RC
+ok=try(RBaM::BaM(mod=M,data=D,workspace=temp.folder,
+                 mcmc=mcmc_options,cook=mcmc_cooking,remnant=remnant))
+if(inherits(ok, "try-error")){return()}
+mcmc=utils::read.table(file=file.path(temp.folder,"Results_Cooking.txt"),header=TRUE)
+res=utils::read.table(file=file.path(temp.folder,"Results_Residuals.txt"),header=TRUE)
+resume=utils::read.table(file=file.path(temp.folder,"Results_Summary.txt"),header=TRUE)
+
+DF=cbind(rec,Hsim=res$Y1_sim)
+ggplot(DF,aes(x=time))+geom_line(aes(y=Hsim,group=index,color=index))+
+  geom_point(aes(y=H,group=index,color=index))+
+  scale_color_distiller(palette='Spectral')+
+  theme_bw()
+
+ix=Ncurves+2+(1:Ncurves)
+violinPlot(mcmc[,])
+lows=data.frame(H=as.numeric(resume[16,ix]),
+                uH=as.numeric(resume[11,ix]))
+seg=Segmentation_Recursive(obs=lows$H,u=lows$uH)
+plot(seg)
