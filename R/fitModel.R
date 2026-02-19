@@ -12,7 +12,7 @@
 #' @importFrom stats lm sd coef
 #' @examples
 #' f=Fit_LinearRegression(x=RhoneRiverAMAX$H,y=RhoneRiverAMAX$Q,time=RhoneRiverAMAX$Date)
-#' plot(f$data$x1,f$data$obs);lines(f$data$x1,f$data$sim,col='red')
+#' plot(f$data$x1,f$data$y);lines(f$data$x1,f$data$ysim,col='red')
 #' plot(f$data$time,f$data$res)
 Fit_LinearRegression <- function(x,y,time=1:NROW(y),uX=0*x,uY=0*y){
   if(NROW(y)<=2){
@@ -22,11 +22,11 @@ Fit_LinearRegression <- function(x,y,time=1:NROW(y),uX=0*x,uY=0*y){
   # Linear regression
   mod <- stats::lm(as.matrix(y)~as.matrix(x))
   # Assemble results
-  DF=as.data.frame(x)
-  if(is.null(names(x))){names(DF) <- paste0('x',1:NCOL(DF))}
-  DF=cbind(time=as.data.frame(time)[,1],DF,obs=as.matrix(y)[,1],sim=mod$fitted.values,
-           res=mod$residuals,uRes=stats::sd(mod$residuals))
+  uRes=stats::sd(mod$residuals)
+  vYsim=uRes^2-uY^2;vYsim[vYsim<0]=0
   pars=stats::coef(mod)
-  out=fittedModel(data=DF,parameters=pars)
+  out=fittedModel(time=time,x=x,y=y,ysim=mod$fitted.values,res=mod$residuals,
+                  uX=uX,uY=uY,uYsim=sqrt(vYsim),uRes=rep(uRes,length(y)),
+                  parameters=as.numeric(pars))
   return(out)
 }

@@ -67,7 +67,9 @@ Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uX=0*x,uY=0*y,
     for(j in 1:nX){ # Loop on each node
       k=k+1 # Increment main counter
       # Fit model
-      f=Fit_funk(x=X[[j]],y=Y[[j]],time=TIME[[j]],uX=UX[[j]],uY=UY[[j]],...)
+      f=Fit_funk(x=as.matrix(X[[j]])[,],y=as.matrix(Y[[j]])[,],
+                 time=as.matrix(TIME[[j]])[,],
+                 uX=as.matrix(UX[[j]])[,],uY=as.matrix(UY[[j]])[,],...)
       if(is.null(f)){
         warning('Problem calling function Fit_funk')
         return()

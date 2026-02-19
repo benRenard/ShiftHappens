@@ -18,9 +18,12 @@
 #' @inherit fittedModel return
 #' @examples
 #' f=Fit_BaRatin(x=ArdecheRiverGaugings$H,y=ArdecheRiverGaugings$Q,
-#'               uY=ArdecheRiverGaugings$uQ,time=ArdecheRiverGaugings$Date)
+#'               uY=ArdecheRiverGaugings$uQ,time=ArdecheRiverGaugings$Date,
+#'               # MCMC options are modified to speed-up example.
+#'               # Using default MCMC options is safer and is recommended.
+#'               mcmc_options=mcmcOptions(nAdapt=50,nCycles=20))
 #' if(!is.null(f)){
-#'   plot(f$data$x,f$data$obs);points(f$data$x,f$data$sim,col='red')
+#'   plot(f$data$x,f$data$y);points(f$data$x,f$data$ysim,col='red')
 #'   plot(f$data$time,f$data$res)
 #' }
 #' @importFrom RBaM dataset xtraModelInfo model BaM prediction
@@ -79,9 +82,10 @@ Fit_BaRatin <- function(x,y,time=1:NROW(y),uX=0*x,uY=0*y,
   # Assemble returned object
   DF=data.frame(time=time,x=x,obs=y,sim=resid$Y1_sim,
                 res=resid$Y1_res,uRes=sqrt(as.matrix(uY)^2+env$Stdev^2))
-  names(DF) <- c('time','x','obs','sim','res','uRes')
   pars=resum[NROW(resum),1:(3*nControl)]
-  out=fittedModel(data=DF,parameters=as.numeric(pars))
+  out=fittedModel(time=time,x=x,y=y,ysim=resid$Y1_sim,res=resid$Y1_res,
+                  uX=uX,uY=uY,uYsim=env$Stdev,uRes=sqrt(as.matrix(uY)^2+env$Stdev^2),
+                  parameters=as.numeric(pars))
   return(out)
 }
 

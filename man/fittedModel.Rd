@@ -5,22 +5,44 @@
 \title{fittedModel object constructor.}
 \usage{
 fittedModel(
-  data = data.frame(time = numeric(0), res = numeric(0), uRes = numeric(0)),
+  time = numeric(0),
+  x = numeric(0),
+  y = numeric(0),
+  ysim = numeric(0),
+  res = y - ysim,
+  uX = 0 * x,
+  uY = 0 * y,
+  uYsim = 0 * ysim,
+  uRes = sqrt(uY^2 + uYsim^2),
   parameters = numeric(0)
 )
 }
 \arguments{
-\item{data}{data.frame, observations, simulations and residuals.
-Should at least contain the following columns, which will be used
-for segmentation: 'time','res' and 'uRes'.}
+\item{time}{numeric vector, time}
 
-\item{parameters}{data.frame, fitted parameters}
+\item{x}{numeric vector or matrix, observed inputs (predictors)}
+
+\item{y}{numeric vector, observed output (predictand)}
+
+\item{ysim}{numeric vector, simulated output}
+
+\item{res}{numeric vector, residual}
+
+\item{uX}{numeric vector or matrix, uncertainty in observed inputs (expressed as a standard deviation)}
+
+\item{uY}{numeric vector, uncertainty in observed outputs (expressed as a standard deviation)}
+
+\item{uYsim}{numeric vector, uncertainty in simulated outputs (expressed as a standard deviation)}
+
+\item{uRes}{numeric vector, residual uncertainty (expressed as a standard deviation)}
+
+\item{parameters}{numeric vector, fitted parameters}
 }
 \value{
 An object of class \code{\link[=fittedModel]{fittedModel()}}, containing the following fields:
 \enumerate{
-\item data: data frame, observations, simulations and residuals
-\item parameters: data frame, fitted parameters
+\item data: data frame, column-binding all the arguments of the function except parameters
+\item parameters: numeric vector, fitted parameters
 }
 }
 \description{

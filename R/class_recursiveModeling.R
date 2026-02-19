@@ -88,19 +88,17 @@ plot_recursiveModeling_data <- function(x,type=c('xy','ty','tx')){
     DF=rbind(DF,cbind(foo,period=i))
   }
   DF$period=as.factor(DF$period)
-  names(DF)[1+(1:nX)]=paste0('x',1:nX)
   # 2DO: handle multi-X case
   if(nX>1 & typ %in% c('xy','tx')){
     warning(paste('This plotting function does not handle multiple predictors yet.',
                   'Only the first predictor x1 is represented in the plot'))
   }
-  DF$uY=0
   colourCount_obs=length(unique(DF$period))
   getPalette_obs=scales::viridis_pal(option='D')
   if(typ=='xy'){
     g=ggplot(DF)+
-      geom_point(aes(x=.data$x1,y=.data$obs,group=.data$period,color=.data$period))+
-      geom_line(aes(x=.data$x1,y=.data$sim,group=.data$period,color=.data$period))
+      geom_point(aes(x=.data$x1,y=.data$y,group=.data$period,color=.data$period))+
+      geom_line(aes(x=.data$x1,y=.data$ysim,group=.data$period,color=.data$period))
     if(any(x$data$uY>0)){
       g=g+geom_errorbar(data=x$data,aes(x=.data$x1,
                                         ymin=.data$y-1.96*.data$uY,

@@ -20,8 +20,8 @@ Fit_LinearRegression(x, y, time = 1:NROW(y), uX = 0 * x, uY = 0 * y)
 \value{
 An object of class \code{\link[=fittedModel]{fittedModel()}}, containing the following fields:
 \enumerate{
-\item data: data frame, observations, simulations and residuals
-\item parameters: data frame, fitted parameters
+\item data: data frame, column-binding all the arguments of the function except parameters
+\item parameters: numeric vector, fitted parameters
 }
 }
 \description{
@@ -29,6 +29,6 @@ Fit a linear regression (with possibly several predictors but a single predictan
 }
 \examples{
 f=Fit_LinearRegression(x=RhoneRiverAMAX$H,y=RhoneRiverAMAX$Q,time=RhoneRiverAMAX$Date)
-plot(f$data$x1,f$data$obs);lines(f$data$x1,f$data$sim,col='red')
+plot(f$data$x1,f$data$y);lines(f$data$x1,f$data$ysim,col='red')
 plot(f$data$time,f$data$res)
 }

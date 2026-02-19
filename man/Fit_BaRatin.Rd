@@ -48,8 +48,8 @@ parameter of the rating curve. Length 3*NROW(controlMatrix)}
 \value{
 An object of class \code{\link[=fittedModel]{fittedModel()}}, containing the following fields:
 \enumerate{
-\item data: data frame, observations, simulations and residuals
-\item parameters: data frame, fitted parameters
+\item data: data frame, column-binding all the arguments of the function except parameters
+\item parameters: numeric vector, fitted parameters
 }
 }
 \description{
@@ -57,9 +57,12 @@ Fit a rating curve with BaRatin
 }
 \examples{
 f=Fit_BaRatin(x=ArdecheRiverGaugings$H,y=ArdecheRiverGaugings$Q,
-              uY=ArdecheRiverGaugings$uQ,time=ArdecheRiverGaugings$Date)
+              uY=ArdecheRiverGaugings$uQ,time=ArdecheRiverGaugings$Date,
+              # MCMC options are modified to speed-up example.
+              # Using default MCMC options is safer and is recommended.
+              mcmc_options=mcmcOptions(nAdapt=50,nCycles=20))
 if(!is.null(f)){
-  plot(f$data$x,f$data$obs);points(f$data$x,f$data$sim,col='red')
+  plot(f$data$x,f$data$y);points(f$data$x,f$data$ysim,col='red')
   plot(f$data$time,f$data$res)
 }
 }
