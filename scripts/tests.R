@@ -64,6 +64,7 @@ k3=RBaM::parameter(name='k3',init=1.2,prior.dist='Gaussian',prior.par=c(1.2,0.2)
 a3=RBaM::parameter(name='a3',init=exp(3.46),prior.dist='LogNormal',prior.par=c(3.46,0.38))
 c3=RBaM::parameter(name='c3',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
 priors=list(k1,a1,c1,k2,a2,c2,k3,a3,c3)
+# Note: possible to use wrapper function ?Segmentation_BaRatin instead of the function below
 sg=Segmentation_RecursiveModeling(x=ArdecheRiverGaugings$H,
                                   y=ArdecheRiverGaugings$Q,
                                   uY=ArdecheRiverGaugings$uQ,

@@ -131,12 +131,12 @@ plot.fittedModel <- function(x,type=c('xy','ty','tres','yysim'),...){
       geom_line(aes(x=.data$x1,y=.data$ysim))+
       geom_point(aes(x=.data$x1,y=.data$y))
     if(any(DF$uY>0)){
-      g=g+geom_errorbar(aes(x=.data$x1,ymin=.data$y-1.96*.data$uY,
-                            ymax=.data$y+1.96*.data$uY))
+      g=g+geom_linerange(aes(x=.data$x1,ymin=.data$y-1.96*.data$uY,
+                            ymax=.data$y+1.96*.data$uY),width=0)
     }
     if(any(DF$uX1>0)){
       g=g+geom_errorbarh(aes(y=.data$y,xmin=.data$x1-1.96*.data$uX1,
-                             xmax=.data$x1+1.96*.data$uX1))
+                             xmax=.data$x1+1.96*.data$uX1),width=0)
     }
   } else if(typ=='ty'){
     g=ggplot(DF)+
@@ -146,24 +146,24 @@ plot.fittedModel <- function(x,type=c('xy','ty','tres','yysim'),...){
       geom_point(aes(x=.data$time,y=.data$y))
     if(any(DF$uY>0)){
       g=g+geom_errorbar(aes(x=.data$time,ymin=.data$y-1.96*.data$uY,
-                            ymax=.data$y+1.96*.data$uY))
+                            ymax=.data$y+1.96*.data$uY),width=0)
     }
   } else if(typ=='tres'){
     g=ggplot(DF)+
       geom_point(aes(x=.data$time,y=.data$res))+
       geom_errorbar(aes(x=.data$time,ymin=.data$res-1.96*.data$uRes,
-                        ymax=.data$res+1.96*.data$uRes))
+                        ymax=.data$res+1.96*.data$uRes),width=0)
   } else if(typ=='yysim'){
     g=ggplot(DF)+
       geom_abline(slope=1,intercept=0)+
       geom_point(aes(x=.data$y,y=.data$ysim))
     if(any(DF$uYsim>0)){
       g=g+geom_errorbar(aes(x=.data$y,ymin=.data$ysim-1.96*.data$uYsim,
-                            ymax=.data$ysim+1.96*.data$uYsim))
+                            ymax=.data$ysim+1.96*.data$uYsim),width=0)
     }
     if(any(DF$uY>0)){
       g=g+geom_errorbarh(aes(y=.data$ysim,xmin=.data$y-1.96*.data$uY,
-                             xmax=.data$y+1.96*.data$uY))
+                             xmax=.data$y+1.96*.data$uY),width=0)
     }
     lim=range(c(DF$y,DF$ysim))
     g=g+coord_equal(xlim=lim,ylim=lim)

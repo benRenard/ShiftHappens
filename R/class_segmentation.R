@@ -306,7 +306,7 @@ plot_segmentedData <- function(x){
     g=g+geom_errorbar(aes(x=.data$time, y=.data$obs,
                           ymin=.data$I95_lower,ymax=.data$I95_upper,
                           col=factor(.data$period)),
-                      width=3)
+                      width=0)
   }
   g=g+scale_color_manual(values=getPalette_obs(colourCount_obs))
   DF=x$shifts

@@ -89,6 +89,52 @@ Fit_BaRatin <- function(x,y,time=1:NROW(y),uX=0*x,uY=0*y,
   return(out)
 }
 
+#' BaRatin-based segmentation
+#'
+#' Segmentation based on gaugings and a recursive estimation of BaRatin rating curves.
+#' This function is just a wrapper around [Segmentation_RecursiveModeling()].
+#'
+#' @param H real vector, stage
+#' @param Q real vector, discharge
+#' @param uH real vector, stage uncertainty (as a standard deviation)
+#' @param uQ real vector, discharge uncertainty (as a standard deviation)
+#' @inheritParams Segmentation_RecursiveModeling
+#' @inheritParams Fit_BaRatin
+#' @inherit fittedModel return
+#' @examples
+#' sg=Segmentation_BaRatin(H=ArdecheRiverGaugings$H,Q=ArdecheRiverGaugings$Q,
+#'                         uQ=ArdecheRiverGaugings$uQ,time=ArdecheRiverGaugings$Date,
+#'                         # MCMC options are modified to speed-up example.
+#'                         # Using default MCMC options is safer and is recommended.
+#'                         mcmc_options=mcmcOptions(nAdapt=30,nCycles=20))
+#' if(!is.null(sg)){
+#'   plot(sg,dataPlotType='ty')
+#'   patchwork::wrap_plots(plot(sg,type='fits'))
+#' }
+#' @export
+Segmentation_BaRatin <- function(H,Q,time=1:NROW(Q),uH=0*H,uQ=0*Q,
+                        flavor=c('BaRatin','BaRatinBAC'),
+                        controlMatrix=matrix(1),
+                        priors=get3FlatPriors(H,Q),
+                        nSmax=2,doQuickApprox=TRUE,
+                        nMin=ifelse(doQuickApprox, 3, 1),
+                        mcmc_options=RBaM::mcmcOptions(),
+                        mcmc_cooking=RBaM::mcmcCooking(),
+                        remnant=list(RBaM::remnantErrorModel()),
+                        temp.folder=file.path(tempdir(),'BaRatin')){
+  flav=match.arg(flavor)
+  out=Segmentation_RecursiveModeling(x=H,y=Q,time=time,uX=uH,uY=uQ,
+                                     Fit_funk=Fit_BaRatin,
+                                     controlMatrix=controlMatrix,priors=priors,
+                                     nSmax=nSmax,doQuickApprox=doQuickApprox,nMin=nMin,
+                                     mcmc_options=mcmc_options,mcmc_cooking=mcmc_cooking,
+                                     remnant=remnant,temp.folder=temp.folder)
+  return(out)
+}
+
+
+
+
 #' Get BaRatin Flat Prior
 #'
 #' Get a default flat prior for the 3 parameters of a 1-control BaRatin Rating curve.

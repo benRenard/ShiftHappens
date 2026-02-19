@@ -103,13 +103,13 @@ plot_recursiveModeling_data <- function(x,type=c('xy','ty','tx')){
       g=g+geom_errorbar(data=x$data,aes(x=.data$x1,
                                         ymin=.data$y-1.96*.data$uY,
                                         ymax=.data$y+1.96*.data$uY,
-                                        color=.data$period,group=.data$period))
+                                        color=.data$period,group=.data$period),width=0)
     }
     if(any(x$data$uX1>0)){
       g=g+geom_errorbarh(data=x$data,aes(y=.data$y,
                                          xmin=.data$x1-1.96*.data$uX1,
                                          xmax=.data$x1+1.96*.data$uX1,
-                                         color=.data$period,group=.data$period))
+                                         color=.data$period,group=.data$period),width=0)
     }
   } else if(typ=='ty') {
     g=ggplot(x$data)+
@@ -118,7 +118,7 @@ plot_recursiveModeling_data <- function(x,type=c('xy','ty','tx')){
       g=g+geom_errorbar(aes(x=.data$time,
                             ymin=.data$y-1.96*.data$uY,
                             ymax=.data$y+1.96*.data$uY,
-                            color=.data$period,group=.data$period))
+                            color=.data$period,group=.data$period),width=0)
     }
     if(NROW(x$segmentation$shifts)>0){
       g=g+geom_vline(data=x$segmentation$shifts,aes(xintercept=.data$tau))
@@ -130,7 +130,7 @@ plot_recursiveModeling_data <- function(x,type=c('xy','ty','tx')){
       g=g+geom_errorbar(aes(x=.data$time,
                             ymin=.data$x1-1.96*.data$uX1,
                             ymax=.data$x1+1.96*.data$uX1,
-                            color=.data$period,group=.data$period))
+                            color=.data$period,group=.data$period),width=0)
     }
     if(NROW(x$segmentation$shifts)>0){
       g=g+geom_vline(data=x$segmentation$shifts,aes(xintercept=.data$tau))
