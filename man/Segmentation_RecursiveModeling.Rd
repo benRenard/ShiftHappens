@@ -11,7 +11,7 @@ Segmentation_RecursiveModeling(
   uX = 0 * x,
   uY = 0 * y,
   nSmax = 2,
-  doQuickApprox = TRUE,
+  doQuickApprox = (nSmax < 3),
   nMin = ifelse(doQuickApprox, 3, 1),
   Fit_funk = Fit_LinearRegression,
   ...,

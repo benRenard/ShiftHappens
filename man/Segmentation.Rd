@@ -9,7 +9,7 @@ Segmentation(
   time = 1:length(obs),
   u = 0 * obs,
   nSmax = 2,
-  doQuickApprox = TRUE,
+  doQuickApprox = (nSmax < 3),
   nMin = ifelse(doQuickApprox, 3, 1),
   nSim = 500,
   varShift = FALSE,
