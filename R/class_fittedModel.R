@@ -17,10 +17,11 @@
 #' @param uRes numeric vector, residual uncertainty (expressed as a standard deviation)
 #' @param group factor, grouping variable
 #' @param parameters numeric vector, fitted parameters
+#' @param uParameters numeric vector, standard deviation or standard error of fitted parameters
 #' @return An object of class [fittedModel()], containing the following fields:
 #' \enumerate{
 #'   \item data: data frame, column-binding all the arguments of the function except parameters
-#'   \item parameters: numeric vector, fitted parameters
+#'   \item parameters: data frame, fitted parameters + standard error
 #' }
 #' @examples
 #' f <- fittedModel()
@@ -28,8 +29,8 @@
 fittedModel<-function(time=numeric(0),x=numeric(0),y=numeric(0),ysim=numeric(0),res=y-ysim,
                       uX=0*x,uY=0*y,uYsim=0*ysim,uRes=sqrt(uY^2+uYsim^2),
                       group=factor(rep(1,length(time))),
-                      parameters=numeric(0)){
-  o<-new_fittedModel(time,x,y,ysim,res,uX,uY,uYsim,uRes,group,parameters)
+                      parameters=numeric(0),uParameters=NA*parameters){
+  o<-new_fittedModel(time,x,y,ysim,res,uX,uY,uYsim,uRes,group,parameters,uParameters)
   return(validate_fittedModel(o))
 }
 
@@ -50,7 +51,7 @@ is.fittedModel<-function(o){
 #***************************************************************************----
 # internal constructor ----
 
-new_fittedModel<-function(time,x,y,ysim,res,uX,uY,uYsim,uRes,group,parameters){
+new_fittedModel<-function(time,x,y,ysim,res,uX,uY,uYsim,uRes,group,parameters,uParameters){
   #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   # basic checks
   stopifnot(is.numeric(x))
@@ -68,7 +69,9 @@ new_fittedModel<-function(time,x,y,ysim,res,uX,uY,uYsim,uRes,group,parameters){
   DF=data.frame(time,x,y,ysim,res,uX,uY,uYsim,uRes,group)
   names(DF) <- c('time',paste0('x',1:NCOL(x)),'y','ysim','res',
                  paste0('uX',1:NCOL(uX)),'uY','uYsim','uRes','group')
-  o=list(data=DF,parameters=parameters)
+  param=data.frame(value=as.numeric(parameters)[],u=as.numeric(uParameters))
+  names(param) <- c('value','u')
+  o=list(data=DF,parameters=param)
   class(o) <- 'fittedModel'
   return(o)
 }

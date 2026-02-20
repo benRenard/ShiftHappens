@@ -21,7 +21,7 @@ Fit_LinearRegression(x, y, time = 1:NROW(y), uX = 0 * x, uY = 0 * y)
 An object of class \code{\link[=fittedModel]{fittedModel()}}, containing the following fields:
 \enumerate{
 \item data: data frame, column-binding all the arguments of the function except parameters
-\item parameters: numeric vector, fitted parameters
+\item parameters: data frame, fitted parameters + standard error
 }
 }
 \description{

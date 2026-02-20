@@ -74,9 +74,9 @@ validate_extractedRecessions<-function(x){
 #'                        nSlim=10) # used to speed-up example, but nSlim=1 is recommended.
 #' lows=getRecessionMin(rec)
 #' plot(lows$date,lows$H)
-#' @importFrom dplyr group_by summarise %>%
+#' @importFrom dplyr group_by arrange summarise %>%
 getRecessionMin <- function(x){
-  out=x %>% group_by(.data$index) %>%
+  out=x %>% group_by(.data$index) %>% arrange(.data$index) %>%
     summarise(H=min(.data$H),date=.data$date[which.min(.data$H)],uH=.data$uH[which.min(.data$H)])
   return(out)
 }

@@ -166,60 +166,198 @@ Extract_Recessions <- function(time,H,uH=0*H,
   return(extractedRecessions(date=out$date,time=out$time,H=out$H,uH=out$uH,index=out$index))
 }
 
-#
-# rec=Extract_Recessions(time=ArdecheRiverStage$Date,H=ArdecheRiverStage$H,nSlim=10)
-#
-# equation='alpha_k*exp(-lambda*t^c)+beta_k'
-# mcmc_options=RBaM::mcmcOptions(nAdapt=20,nCycles=20)
-# mcmc_cooking=RBaM::mcmcCooking()
-# remnant=list(RBaM::remnantErrorModel(funk='Constant',par=list(parameter('sigma',stats::sd(rec$H),'FlatPrior+'))))
-# temp.folder=file.path(tempdir(),'Recessions')
-#
-#
-# D=RBaM::dataset(X=data.frame(t=rec$time),Y=data.frame(H=rec$H),
-#                 Yu=data.frame(uH=rec$uH),VAR.indx=data.frame(index=rec$index),
-#                 data.dir=temp.folder)
-# Ncurves=max(rec$index)
-# # Stable parameters
-# lambda=RBaM::parameter(name='lambda',
-#                        init=log(2)/stats::median(rec$time), # see https://en.wikipedia.org/wiki/Exponential_decay
-#                        prior.dist='FlatPrior+')
-# c=RBaM::parameter(name='c',
-#                   init=1,
-#                   prior.dist='FlatPrior+')
-# # Variable parameters
-# foo=rec %>% group_by(.data$index) %>% summarise(minH=min(.data$H),maxH=max(.data$H))
-# beta_k=RBaM::parameter_VAR(name='beta_k',index='index',d=D,
-#                            # The next 3 lines specify the parameter's initial guess and prior FOR EACH INDEX
-#                            init=foo$minH, # first guesses
-#                            prior.dist=rep('FlatPrior',Ncurves),
-#                            prior.par =rep(list(NULL), Ncurves)) # prior distributions
-# alpha_k=RBaM::parameter_VAR(name='alpha_k',index='index',d=D,
-#                             # The next 3 lines specify the parameter's initial guess and prior FOR EACH INDEX
-#                             init=foo$maxH-foo$minH,
-#                             prior.dist=rep('FlatPrior+',Ncurves),
-#                             prior.par =rep(list(NULL), Ncurves))
-# # Use xtraModelInfo to pass the names of the inputs and the formulas
-# xtra=RBaM::xtraModelInfo(object=list(inputs=c('t'),formulas=equation))
-# # model
-# M=RBaM::model(ID='TextFile',nX=1,nY=1,par=list(alpha_k,lambda,c,beta_k),xtra=xtra)
-# # Run BaM executable to calibrate RC
-# ok=try(RBaM::BaM(mod=M,data=D,workspace=temp.folder,
-#                  mcmc=mcmc_options,cook=mcmc_cooking,remnant=remnant))
-# if(inherits(ok, "try-error")){return()}
-# mcmc=utils::read.table(file=file.path(temp.folder,"Results_Cooking.txt"),header=TRUE)
-# res=utils::read.table(file=file.path(temp.folder,"Results_Residuals.txt"),header=TRUE)
-# resume=utils::read.table(file=file.path(temp.folder,"Results_Summary.txt"),header=TRUE)
-#
-# DF=cbind(rec,Hsim=res$Y1_sim)
-# ggplot(DF,aes(x=time))+geom_line(aes(y=Hsim,group=index,color=index))+
-#   geom_point(aes(y=H,group=index,color=index))+
-#   scale_color_distiller(palette='Spectral')+
-#   theme_bw()
-#
-# ix=Ncurves+2+(1:Ncurves)
-# violinPlot(mcmc[,])
-# lows=data.frame(H=as.numeric(resume[16,ix]),
-#                 uH=as.numeric(resume[11,ix]))
-# seg=Segmentation_Recursive(obs=lows$H,u=lows$uH)
-# plot(seg)
+#' Fit recession model
+#'
+#' Fit a model to a set of recession events.
+#'
+#' @param rec [extractedRecessions()] object, resulting from a call to function [Extract_Recessions()]
+#' @param equation string, equation used to model recessions, from M1 to M9.
+#'     For more details see Chapter 3 of the PhD thesis of Matteo Darienzo
+#'     (2021, \url{https://theses.hal.science/tel-03211343}) or call getRecessionEquations()
+#' @inheritParams Fit_BaRatin
+#' @inherit fittedModel return
+#' @source \url{https://theses.hal.science/tel-03211343}
+#' @examples
+#' rec=Extract_Recessions(time=ArdecheRiverStage$Date,H=ArdecheRiverStage$H,
+#'                        nSlim=10) # used to speed-up example, but nSlim=1 is recommended.
+#' f=Fit_Recessions(rec=rec,equation='M7',
+#'                  # MCMC options are modified to speed-up example.
+#'                  # Using default MCMC options is safer and is recommended.
+#'                  mcmc_options=mcmcOptions(nAdapt=20,nCycles=10))
+#' if(!is.null(f)){
+#'   plot(f)
+#'   plot(f,type='ty')
+#' }
+#' @importFrom RBaM dataset xtraModelInfo model BaM mcmcOptions mcmcCooking
+#' @importFrom utils read.table
+#' @export
+Fit_Recessions <- function(rec,equation=c('M6','M1','M2','M3','M4','M5','M7','M8','M9'),
+                           mcmc_options=RBaM::mcmcOptions(),
+                           mcmc_cooking=RBaM::mcmcCooking(),
+                           remnant=list(getConstantRemnant(rec)),
+                           temp.folder=file.path(tempdir(),'Recessions')){
+  eq=match.arg(equation)
+  # RBaM dataset object
+  D=RBaM::dataset(X=data.frame(t=rec$time),Y=data.frame(H=rec$H),
+                  Yu=data.frame(uH=rec$uH),VAR.indx=data.frame(index=rec$index),
+                  data.dir=temp.folder)
+  Ncurves=max(rec$index)
+  # get parameter list
+  param=getRecessionParameters(rec,eq,D)
+  # Use xtraModelInfo to pass the names of the inputs and the formulas
+  xtra=RBaM::xtraModelInfo(object=list(inputs=c('t'),formulas=getRecessionEquations()[[eq]]))
+  # BaM model object
+  M=RBaM::model(ID='TextFile',nX=1,nY=1,par=param,xtra=xtra)
+  # Run BaM executable to calibrate RC
+  ok=try(RBaM::BaM(mod=M,data=D,workspace=temp.folder,
+                   mcmc=mcmc_options,cook=mcmc_cooking,remnant=remnant))
+  if(inherits(ok, "try-error")){return()}
+  # Read results
+  res=utils::read.table(file=file.path(temp.folder,"Results_Residuals.txt"),header=TRUE)
+  resume=utils::read.table(file=file.path(temp.folder,"Results_Summary.txt"),header=TRUE)
+  # Assemble output
+  stot=res$Y1_res/res$Y1_stdres # total uncertainty
+  out=fittedModel(time=rec$date,x=rec$time,y=rec$H,ysim=res$Y1_sim,res=res$Y1_res,
+                uY=rec$uH,uYsim=sqrt(stot^2-rec$uH^2),uRes=stot,group=rec$index,
+                parameters=resume[16,],uParameters=resume[11,])
+  return(out)
+}
+
+#' Recessions equations
+#'
+#' Get all available recession equations.
+#' For details see Chapter 3 of the PhD thesis of Matteo Darienzo
+#' (2021, \url{https://theses.hal.science/tel-03211343}).
+#'
+#' @return A list containing all available equations.
+#' @source \url{https://theses.hal.science/tel-03211343}
+#' @examples
+#' getRecessionEquations()
+#' @export
+getRecessionEquations <- function(){
+  out=list(
+    M1='alpha_k*exp(-lambda*t)+beta_k',
+    M2='alpha1_k*exp(-lambda1*t)+alpha2*exp(-lambda2*t)+beta_k',
+    M3='alpha1_k*exp(-lambda1*t)+alpha2_k*exp(-lambda2*t)+beta_k',
+    M4='alpha1_k*exp(-lambda1*t)+alpha2*exp(-lambda2*t)+alpha3*exp(-lambda3*t)+beta_k',
+    M5='alpha1_k*exp(-lambda1*t)+alpha2_k*exp(-lambda2*t)+alpha3*exp(-lambda3*t)+beta_k',
+    M6='alpha_k*exp(-lambda*t^eta)+beta_k',
+    M7='alpha_k*exp(-lambda_k*t^eta)+beta_k',
+    M8='alpha_k/((1+lambda*t)^eta)+beta_k',
+    M9='alpha_k/((1+lambda_k*t)^eta)+beta_k'
+  )
+  return(out)
+}
+
+#' Recessions-based segmentation
+#'
+#' Segmentation based on a segmentation of the lowest points reached by stage recessions.
+#' For more details see Chapter 3 of the PhD thesis of Matteo Darienzo
+#' (2021, \url{https://theses.hal.science/tel-03211343}).
+#'
+#' @param equation string, equation used to model recessions. If 'none' (default), the minimum
+#'     of each recession is extracted directly (hence no recession model is used) and seegmented.
+#'     If a model between 'M1' and 'M9' is used, recessions are modeled and the 'asymptoti stage'
+#'     parameter is segmented. For more details on the model equations, see Chapter 3 of the PhD thesis
+#'     of Matteo Darienzo (2021, \url{https://theses.hal.science/tel-03211343}) or call getRecessionEquations().
+#' @inheritParams Fit_Recessions
+#' @inheritParams Segmentation_Recursive
+#' @inherit fittedModel return
+#' @source \url{https://theses.hal.science/tel-03211343}
+#' @examples
+#' rec=Extract_Recessions(time=ArdecheRiverStage$Date,H=ArdecheRiverStage$H,
+#'                        nSlim=10) # used to speed-up example, but nSlim=1 is recommended.
+#'  sg=Segmentation_Recessions(rec)
+#'  plot(sg)
+#' @export
+Segmentation_Recessions <- function(rec,equation=c('none','M1','M2','M3','M4','M5','M6','M7','M8','M9'),
+                                    nSmax=2,doQuickApprox=TRUE,nMin=ifelse(doQuickApprox,3,1),
+                                    nSim=500,varShift=FALSE,alpha=0.1,
+                                    mcmc_options=RBaM::mcmcOptions(),
+                                    mcmc_cooking=RBaM::mcmcCooking(),
+                                    mu_prior=list(),
+                                    remnant=list(getConstantRemnant(rec)),
+                                    temp.folder=file.path(tempdir(),'Recessions')){
+  # Get recession lows to be segmented
+  eq=match.arg(equation)
+  recMin=getRecessionMin(rec)
+  Ncurves=NROW(recMin)
+  DF=data.frame(index=recMin$index,date=recMin$date)
+  if(eq=='none'){
+    DF=cbind(DF,value=recMin$H,u=recMin$uH)
+  } else {
+    f=Fit_Recessions(rec=rec,equation=eq,
+                     mcmc_options=mcmc_options,mcmc_cooking=mcmc_cooking,
+                     remnant=remnant,temp.folder=temp.folder)
+    DF=cbind(DF,value=f$parameters$value[1:Ncurves],u=f$parameters$u[1:Ncurves])
+  }
+  # Segment
+  out=Segmentation_Recursive(obs=DF$value,time=DF$date,u=DF$u,
+                             nSmax=nSmax,doQuickApprox=doQuickApprox,nMin=nMin,
+                             nSim=nSim,varShift=varShift,alpha=alpha,
+                             mcmc_options=mcmc_options,mcmc_cooking=mcmc_cooking,
+                             temp.folder=temp.folder,mu_prior=mu_prior)
+  return(out)
+}
+
+#***************************************************************************----
+# internal functions ----
+
+#' Get constant remnant error model
+#'
+#' Get a remnant error model corresponding to a constant standard deviation.
+#'
+#' @param rec [extractedRecessions()] object, resulting from a call to function [Extract_Recessions()]
+#' @return a remnantErrorModel object, see ?RBaM::remnantErrorModel
+#' @keywords internal
+#' @importFrom RBaM parameter remnantErrorModel
+#' @importFrom stats sd
+getConstantRemnant <- function(rec){
+  param=RBaM::parameter(name='sigma',init=stats::sd(rec$H),prior.dist='FlatPrior+')
+  out=RBaM::remnantErrorModel(funk='Constant',par=list(param))
+  return(out)
+}
+
+#' Get recession parameters
+#'
+#' Get a list of parameters corresponding to a given recession equation.
+#'
+#' @param rec [extractedRecessions()] object, resulting from a call to function [Extract_Recessions()]
+#' @param eq string, the requested equation
+#' @param D RBaM dataset object, ?RBaM::dataset
+#' @return a list of parameter objects, see ?RBaM::parameter
+#' @keywords internal
+#' @importFrom RBaM parameter
+#' @importFrom stats median
+#' @importFrom dplyr group_by summarise %>%
+getRecessionParameters <- function(rec,eq,D){
+  Ncurves=max(rec$index)
+  foo=rec %>% group_by(.data$index) %>% summarise(minH=min(.data$H),maxH=max(.data$H))
+  # beta_k is common to all models
+  beta_k=RBaM::parameter_VAR(name='beta_k',index='index',d=D,
+                             # Specify the parameter's initial guess and prior FOR EACH INDEX
+                             init=foo$minH,prior.dist=rep('FlatPrior',Ncurves),prior.par =rep(list(NULL), Ncurves))
+  # Model-specific parameters
+  if(eq %in% c('M6','M7')){
+    eta=RBaM::parameter(name='eta',init=1,prior.dist='FlatPrior+')
+    alpha_k=RBaM::parameter_VAR(name='alpha_k',index='index',d=D,
+                                # The next 3 lines specify the parameter's initial guess and prior FOR EACH INDEX
+                                init=foo$maxH-foo$minH,
+                                prior.dist=rep('FlatPrior+',Ncurves),
+                                prior.par =rep(list(NULL), Ncurves))
+    if(eq=='M6'){
+      lambda=RBaM::parameter(name='lambda',
+                             init=log(2)/stats::median(rec$time), # see https://en.wikipedia.org/wiki/Exponential_decay
+                             prior.dist='FlatPrior+')
+      out=list(beta_k,alpha_k,lambda,eta)
+    } else {
+      lambda_k=RBaM::parameter_VAR(name='lambda_k',index='index',d=D,
+                             init=rep(log(2)/stats::median(rec$time),Ncurves),
+                             prior.dist=rep('FlatPrior+',Ncurves),prior.par =rep(list(NULL), Ncurves))
+      out=list(beta_k,alpha_k,lambda_k,eta)
+    }
+  } else {
+    stop('The requested recession equation is unknown or is not yet implemented')
+  }
+  return(out)
+}

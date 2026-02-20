@@ -85,3 +85,16 @@ rec=Extract_Recessions(time=ArdecheRiverStage$Date,
 plot(rec)
 plot(rec,type='th')
 plot(rec,type='dhmin')
+# Segmentation based on recession minima
+lows=getRecessionMin(rec)
+sg=Segmentation_Recursive(obs=lows$H,time=lows$date)
+plot(sg)
+# Model recessions and segment asymptotic stages
+f=Fit_Recessions(rec,equation='M7',
+                 mcmc_options=mcmcOptions(nAdapt=20,nCycles=10)) # speed-up
+betas=f$parameters[1:max(rec$index),]
+sg=Segmentation_Recursive(obs=betas$value,u=betas$u)
+plot(sg)
+# Possible to do segmentation directly from rec using wrapper function Segmentation_Recession:
+sg=Segmentation_Recessions(rec) # by default, uses recession minima with no modeling
+plot(sg)

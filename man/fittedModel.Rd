@@ -15,7 +15,8 @@ fittedModel(
   uYsim = 0 * ysim,
   uRes = sqrt(uY^2 + uYsim^2),
   group = factor(rep(1, length(time))),
-  parameters = numeric(0)
+  parameters = numeric(0),
+  uParameters = NA * parameters
 )
 }
 \arguments{
@@ -40,12 +41,14 @@ fittedModel(
 \item{group}{factor, grouping variable}
 
 \item{parameters}{numeric vector, fitted parameters}
+
+\item{uParameters}{numeric vector, standard deviation or standard error of fitted parameters}
 }
 \value{
 An object of class \code{\link[=fittedModel]{fittedModel()}}, containing the following fields:
 \enumerate{
 \item data: data frame, column-binding all the arguments of the function except parameters
-\item parameters: numeric vector, fitted parameters
+\item parameters: data frame, fitted parameters + standard error
 }
 }
 \description{

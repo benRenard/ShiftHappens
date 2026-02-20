@@ -133,9 +133,6 @@ Segmentation_BaRatin <- function(H,Q,time=1:NROW(Q),uH=0*H,uQ=0*Q,
   return(out)
 }
 
-
-
-
 #' Get BaRatin Flat Prior
 #'
 #' Get a default flat prior for the 3 parameters of a 1-control BaRatin Rating curve.

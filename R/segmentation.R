@@ -219,7 +219,7 @@ Segmentation_Recursive <- function(obs,
                                           nSmax=nSmax,doQuickApprox=doQuickApprox,nMin=nMin,
                                           nSim=nSim,varShift=varShift,alpha=alpha,
                                           mcmc_options=mcmc_options,mcmc_cooking=mcmc_cooking,
-                                          temp.folder,mu_prior=mu_prior)
+                                          temp.folder=temp.folder,mu_prior=mu_prior)
       }
       if(is.null(partial.segmentation)){return()}
       # Save results for this node
