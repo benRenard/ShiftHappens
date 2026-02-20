@@ -14,6 +14,7 @@ fittedModel(
   uY = 0 * y,
   uYsim = 0 * ysim,
   uRes = sqrt(uY^2 + uYsim^2),
+  group = factor(rep(1, length(time))),
   parameters = numeric(0)
 )
 }
@@ -35,6 +36,8 @@ fittedModel(
 \item{uYsim}{numeric vector, uncertainty in simulated outputs (expressed as a standard deviation)}
 
 \item{uRes}{numeric vector, residual uncertainty (expressed as a standard deviation)}
+
+\item{group}{factor, grouping variable}
 
 \item{parameters}{numeric vector, fitted parameters}
 }
