@@ -14,7 +14,8 @@ plot_anySegmentation(x, type = c("both", "data", "shifts"), ...)
 \item{...}{Optional arguments}
 }
 \value{
-a ggplot
+a patchwork object if type='both',
+a ggplot object if type='data' or type='shifts'.
 }
 \description{
 plot a segmentation object of class simpleSegmentation, multipleSegmentation or recursiveSegmentation.

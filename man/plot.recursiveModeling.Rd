@@ -24,7 +24,9 @@
 \item{...}{Optional arguments}
 }
 \value{
-a ggplot (or a list of ggplots if type='fits')
+a patchwork object if type='both',
+a ggplot object if type='data' or type='shifts',
+a list of ggplot objects if type='fits'.
 }
 \description{
 Plot a \code{\link[=recursiveModeling]{recursiveModeling()}} object.

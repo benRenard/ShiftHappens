@@ -265,7 +265,8 @@ plot.recursiveSegmentation <- function(x,type=c('both','data','shifts'),...){
 #' @param x object, of class simpleSegmentation, multipleSegmentation or recursiveSegmentation.
 #' @param type string, type of plot
 #' @param ... Optional arguments
-#' @return a ggplot
+#' @return a patchwork object if type='both',
+#'     a ggplot object if type='data' or type='shifts'.
 #' @keywords internal
 #' @import ggplot2
 #' @importFrom patchwork wrap_plots plot_layout

@@ -21,14 +21,14 @@ Segmentation:
 
 [DONE] FIX BUG IN HANDLING OF origin.date IN RECURSIVE SEGMENTATION (and RECURSIVE MODELING)
 
-Define a plot method for fitted Model class ?
+[DONE] Define a plot method for fitted Model class ?
 
-Needs a BaRatin_tools module? or can it stay part of curve_tools? -> No, make a BaRatin_tools, including in particular the fitRC_BaRatinXXX functions -> Not sure about that. At least fitRC_BaRatinXXX should rather go into fitModel. If there are other BaRatin utilities than this module may be worth it.
+[DONE] Needs a BaRatin_tools module? or can it stay part of curve_tools? -> No, make a BaRatin_tools, including in particular the fitRC_BaRatinXXX functions -> Not sure about that. At least fitRC_BaRatinXXX should rather go into fitModel. If there are other BaRatin utilities than this module may be worth it. -> No, finally fit_BaRatin goes into BaRatin_tools
 
-Catalog: OK, but review link with equations_RC_recessions
+[DONE] Catalog: OK, but review link with equations_RC_recessions - has been removed
 
-equations_RC_recessions: should not exist? or it should at least be named equations_curve_recessions, but most likely it should be part of specific *_tools modules (or directly in Catalog?)
+[DONE] equations_RC_recessions: should not exist? or it should at least be named equations_curve_recessions, but most likely it should be part of specific *_tools modules (or directly in Catalog?) - just a list that is part of recession_tools
 
-modelandsegment_recessions: should not exist. Instead, create file recessions_tools, that includes recession model fitting, plots, and possibly a wrapping function to do recession - fit - segment in one go.
+[DONE] modelandsegment_recessions: should not exist. Instead, create file recessions_tools, that includes recession model fitting, plots, and possibly a wrapping function to do recession - fit - segment in one go.
 
 

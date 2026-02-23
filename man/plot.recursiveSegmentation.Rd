@@ -14,7 +14,8 @@
 \item{...}{Optional arguments}
 }
 \value{
-a ggplot
+a patchwork object if type='both',
+a ggplot object if type='data' or type='shifts'.
 }
 \description{
 Plot a recursiveSegmentation object.

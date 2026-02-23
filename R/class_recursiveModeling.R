@@ -153,7 +153,9 @@ plot_recursiveModeling_data <- function(x,type=c('xy','ty','tx')){
 #' @param dataPlotType string, type of data plot: 'xy' for a x-y scatterplot,
 #'     'ty' for a time series plot of y, 'tx' for a time series plot of x
 #' @param ... Optional arguments
-#' @return a ggplot (or a list of ggplots if type='fits')
+#' @return a patchwork object if type='both',
+#'     a ggplot object if type='data' or type='shifts',
+#'     a list of ggplot objects if type='fits'.
 #' @examples
 #' x=Segmentation_RecursiveModeling(x=ArdecheRiverGaugings$H,y=ArdecheRiverGaugings$Q)
 #' plot(x)
