@@ -45,7 +45,7 @@ The dataset `RhoneRiverAMAX` coming with the package contains annual maximum sta
 
 ## Basic usage
 
-To segment a series of observations without knowing the number of segments, we recommend starting with the function `Segmentation_Recursive`. With its default arguments, this function attempts to split the series into two segments using the method described in [@gombay1994](https://www.sciencedirect.com/science/article/pii/0304414994901546), then if successful tries to further split each obtained segment into two sub-segments, and so one until all segments cannot be further split. The function returns an object (see `?recursiveSegmentation`) that can be plotted (see `?plot.recursiveSegmentation`).
+To segment a series of observations without knowing the number of segments, we recommend starting with the function `Segmentation_Recursive`. With its default arguments, this function attempts to split the series into two segments using the method described in [@gombay1994](https://www.sciencedirect.com/science/article/pii/0304414994901546), then if successful tries to further split each obtained segment into two sub-segments, and so on until all segments cannot be further split. The function returns an object (see `?recursiveSegmentation`) that can be plotted (see `?plot.recursiveSegmentation`).
 
 ```{r Segmentation_Recursive}
 sg=Segmentation_Recursive(time=RhoneRiverAMAX$Date,
@@ -104,7 +104,7 @@ plot(ArdecheRiverGaugings$H,ArdecheRiverGaugings$Q)
 
 ## Recursive linear regression
 
-The function `Segmentation_RecursiveModeling` fits a model between $x$ and $y$ and then segment the residuals. If several segments are detected, the model is fitted again on each obtained segment and the segmentation is re-applied, and so one until all segments cannot be further split. By default the model used is a simple linear regression between $x$ and $y$. 
+The function `Segmentation_RecursiveModeling` fits a model between $x$ and $y$ and then segment the residuals. If several segments are detected, the model is fitted again on each obtained segment and the segmentation is re-applied, and so on until all segments cannot be further split. By default the model used is a simple linear regression between $x$ and $y$. 
 The function returns an object (see `?recursiveModeling`) that can be plotted (see `?plot.recursiveModeling`).
 
 ```{r Recursive_Linear}
@@ -188,19 +188,23 @@ sg=Segmentation_Recursive(obs=lows$H,time=lows$date)
 plot(sg)
 ```
 
-A more advanced approach is to model the extracted recessions and to segment the parameter of this model that controls the asymptotic low stage. Details on this procedure can be found in [@darienzoDetectionEstimationStagedischarge2021](https://theses.hal.science/tel-03211343) (Chapter 3). First, the function `Fit_Recessions` can be used to fit the recession model.
+A more advanced approach is to model the extracted recessions and to segment the parameter of this model that controls the asymptotic low stage. Details on this procedure can be found in [@darienzoDetectionEstimationStagedischarge2021](https://theses.hal.science/tel-03211343) (Chapter 3). First, the function `Fit_Recessions` can be used to fit the recession model. 
 
 ```{r recModel}
-getRecessionEquations() # View available recession equations
+# View available recession models. 
+# Note that in all equations, the asymptotic stage (when t tends to infinity)
+# is equal to parameter beta_k
+getRecessionEquations() 
+# Fit one of the models
 f=Fit_Recessions(rec,equation='M7',
                  # The line below aims at speeding up computations, 
                  # but it is advised to make definitive runs 
                  # with the default MCMC options
                  mcmc_options=RBaM::mcmcOptions(nAdapt=25,nCycles=20))
-plot(f)
+patchwork::wrap_plots(plot(f),plot(f,type='ty'),ncol=1)
 ```
 
-Second, the parameters controling the recession asymptotic stages can be extracted and segmented. Note that the wrapper function `Segmentation_Recessions` can be used to perform the whole model-then-segment analysis in one go. 
+Second, the parameters controlling the recession asymptotic stages can be extracted and segmented. Note that the wrapper function `Segmentation_Recessions` can be used to perform the whole model-then-segment analysis in one go. 
 
 ```{r recModel2}
 betas=f$parameters[1:max(rec$index),]

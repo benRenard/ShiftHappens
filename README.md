@@ -68,7 +68,7 @@ attempts to split the series into two segments using the method
 described in [Gombay and Horvath
 (1994)](https://www.sciencedirect.com/science/article/pii/0304414994901546),
 then if successful tries to further split each obtained segment into two
-sub-segments, and so one until all segments cannot be further split. The
+sub-segments, and so on until all segments cannot be further split. The
 function returns an object (see `?recursiveSegmentation`) that can be
 plotted (see `?plot.recursiveSegmentation`).
 
@@ -78,7 +78,7 @@ sg=Segmentation_Recursive(time=RhoneRiverAMAX$Date,
                          u=RhoneRiverAMAX$uH)
 sg$shifts # estimated shifts
 #>          tau  I95_lower  I95_upper id_iteration
-#> 1 1967-03-10 1967-04-08 1971-03-01            1
+#> 1 1967-03-10 1967-05-01 1971-03-12            1
 plot(sg)
 ```
 
@@ -93,14 +93,14 @@ sg=Segmentation_Recursive(time=RhoneRiverAMAX$Date,
                           obs=RhoneRiverAMAX$uQ)
 sg$shifts
 #>          tau  I95_lower  I95_upper id_iteration
-#> 1 1841-10-27 1841-10-30 1842-09-14            1
-#> 5 1855-10-21 1845-10-13 1856-05-17            6
-#> 3 1858-03-04 1856-08-16 1936-12-27            4
-#> 8 1889-01-01 1878-12-05 1918-05-29           12
-#> 6 1934-05-01 1932-07-08 1935-10-28            7
-#> 2 1952-12-01 1952-01-01 1956-03-02            3
-#> 7 1967-03-10 1966-12-14 1971-02-08            8
-#> 4 1975-09-16 1974-10-07 1983-08-31            5
+#> 1 1841-10-27 1841-11-06 1842-09-16            1
+#> 5 1855-10-21 1845-10-03 1856-05-19            6
+#> 3 1858-03-04 1856-10-20 1936-10-12            4
+#> 8 1889-01-01 1879-11-02 1917-12-26           12
+#> 6 1934-05-01 1932-07-18 1935-11-05            7
+#> 2 1952-12-01 1951-12-31 1956-02-10            3
+#> 7 1967-03-10 1967-01-24 1971-02-02            8
+#> 4 1975-09-16 1974-06-16 1982-07-16            5
 plot(sg)
 ```
 
@@ -177,7 +177,7 @@ plot(ArdecheRiverGaugings$H,ArdecheRiverGaugings$Q)
 The function `Segmentation_RecursiveModeling` fits a model between $x$
 and $y$ and then segment the residuals. If several segments are
 detected, the model is fitted again on each obtained segment and the
-segmentation is re-applied, and so one until all segments cannot be
+segmentation is re-applied, and so on until all segments cannot be
 further split. By default the model used is a simple linear regression
 between $x$ and $y$. The function returns an object (see
 `?recursiveModeling`) that can be plotted (see
@@ -315,7 +315,10 @@ stage. Details on this procedure can be found in [Matteo Darienzo
 function `Fit_Recessions` can be used to fit the recession model.
 
 ``` r
-getRecessionEquations() # View available recession equations
+# View available recession models. 
+# Note that in all equations, the asymptotic stage (when t tends to infinity)
+# is equal to parameter beta_k
+getRecessionEquations() 
 #> $M1
 #> [1] "alpha_k*exp(-lambda*t)+beta_k"
 #> 
@@ -342,18 +345,19 @@ getRecessionEquations() # View available recession equations
 #> 
 #> $M9
 #> [1] "alpha_k/((1+lambda_k*t)^eta)+beta_k"
+# Fit one of the models
 f=Fit_Recessions(rec,equation='M7',
                  # The line below aims at speeding up computations, 
                  # but it is advised to make definitive runs 
                  # with the default MCMC options
                  mcmc_options=RBaM::mcmcOptions(nAdapt=25,nCycles=20))
-plot(f)
+patchwork::wrap_plots(plot(f),plot(f,type='ty'),ncol=1)
 ```
 
 <img src="man/readme/README-recModel-1.png" width="100%" />
 
-Second, the parameters controling the recession asymptotic stages can be
-extracted and segmented. Note that the wrapper function
+Second, the parameters controlling the recession asymptotic stages can
+be extracted and segmented. Note that the wrapper function
 `Segmentation_Recessions` can be used to perform the whole
 model-then-segment analysis in one go.
 
