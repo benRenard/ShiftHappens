@@ -85,9 +85,11 @@ plot_recursiveModeling_data <- function(x,type=c('xy','ty','tx')){
   for(i in 1:length(terminal)){
     node=terminal[i]
     foo=x$fit[[node]]$data
-    DF=rbind(DF,cbind(foo,period=i))
+    DF=rbind(DF,foo)
   }
+  DF=DF %>% left_join(x$data[c('time','period')],by='time')
   DF$period=as.factor(DF$period)
+
   # 2DO: handle multi-X case
   if(nX>1 & typ %in% c('xy','tx')){
     warning(paste('This plotting function does not handle multiple predictors yet.',
