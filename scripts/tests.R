@@ -11,6 +11,11 @@ plot(sg)
 sg=Segmentation_Recursive(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Date)
 plot(sg)
 
+# Use unsorted dates
+ix=sample(1:NROW(RhoneRiverAMAX))
+sg=Segmentation_Recursive(obs=RhoneRiverAMAX$H[ix],time=RhoneRiverAMAX$Date[ix])
+plot(sg)
+
 # Use uncertainties
 sg=Segmentation_Recursive(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Date,u=RhoneRiverAMAX$uH)
 plot(sg)
@@ -39,6 +44,11 @@ for(i in 1:NCOL(shifts)){
     lines(shifts[,i],col=i)
   }
 }
+# Unsorted dates
+ix=sample(1:NROW(RhoneRiverAMAX))
+sg=Segmentation_Recursive(obs=RhoneRiverAMAX$uQ[ix],time=RhoneRiverAMAX$Date[ix])
+plot(sg)
+sg$shifts
 
 # Recursive modeling with default linear regression
 sg=Segmentation_RecursiveModeling(x=ArdecheRiverGaugings$H,
@@ -51,6 +61,14 @@ plot(sg,dataPlotType='ty') # 'time-y' alternative plot in the data panel
 wrap_plots(plot(sg,type='fits')) # plot fitted model in each terminal node
 plot(sg$segmentation) # plot segmentation object contained in sg
 plot(sg$segmentation$tree) # plot segmentation tree contained in sg
+# Unsorted dates
+ix=sample(1:NROW(ArdecheRiverGaugings))
+sg=Segmentation_RecursiveModeling(x=ArdecheRiverGaugings$H[ix],
+                                  y=ArdecheRiverGaugings$Q[ix],
+                                  uY=ArdecheRiverGaugings$uQ[ix],
+                                  time=ArdecheRiverGaugings$Date[ix])
+sg$segmentation$shifts
+plot(sg) # default 'xy' scatterplot for recursiveModeling object
 
 # Recursive modeling with BaRatin
 controlMatrix=rbind(c(1,0,0),c(0,1,0),c(0,1,1))

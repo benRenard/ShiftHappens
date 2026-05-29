@@ -39,8 +39,13 @@ Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uX=0*x,uY=0*y,
   if(NROW(y)<2){
     stop('At least 2 observations are required',call.=FALSE)
   }
+  if(is.unsorted(time)){
+    isort=sort.int(time,index.return=TRUE)$ix
+  } else {
+    isort=1:length(time)
+  }
   # Save initial dataset
-  data0=data.frame(time=time,x,y,uX,uY)
+  data0=data.frame(time=time[isort],x[isort],y[isort],uX[isort],uY[isort])
   names(data0)=c('time',paste0('x',1:NCOL(x)),'y',paste0('uX',1:NCOL(uX)),'uY')
   # Initialization
   allRes=list() # store segmentation results for all nodes in a sequential list
@@ -49,11 +54,11 @@ Segmentation_RecursiveModeling <- function(x,y,time=1:NROW(y),uX=0*x,uY=0*y,
   tree=segmentationTree() # store tree structure (parents - children relationship)
   p=1 # Auxiliary counter needed to keep track of children / parents indices
   level=0 # Recursion level. The tree is created level-by-level rather than branch-by-branch
-  X=list(as.data.frame(x)) # List X of all nodes (each corresponding to a subseries of x) to be segmented at this level. Start with a unique node corresponding to the whole series
-  Y=list(as.data.frame(y)) # List Y of all nodes (each corresponding to a subseries of y) to be segmented at this level. Start with a unique node corresponding to the whole series
-  TIME=list(as.data.frame(time)) # List of corresponding times
-  UX=list(as.data.frame(uX)) # List of X uncertainties
-  UY=list(as.data.frame(uY)) # List of Y uncertainties
+  X=list(as.data.frame(x[isort])) # List X of all nodes (each corresponding to a subseries of x) to be segmented at this level. Start with a unique node corresponding to the whole series
+  Y=list(as.data.frame(y[isort])) # List Y of all nodes (each corresponding to a subseries of y) to be segmented at this level. Start with a unique node corresponding to the whole series
+  TIME=list(as.data.frame(time[isort])) # List of corresponding times
+  UX=list(as.data.frame(uX[isort])) # List of X uncertainties
+  UY=list(as.data.frame(uY[isort])) # List of Y uncertainties
   indices=c(1) # Vector containing the indices of each node - same size as X
   parents=c(0) # Vector containing the indices of the parents of each node - same size as X
   continue=TRUE # Logical determining whether recursion should continue
