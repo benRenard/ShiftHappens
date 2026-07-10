@@ -8,3 +8,4 @@
 ^bugs
 ^cran-comments\.md$
 ^\.github$
+^CRAN-SUBMISSION$
