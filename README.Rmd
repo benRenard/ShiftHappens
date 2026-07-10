@@ -6,7 +6,7 @@ output:
   github_document:
     toc: yes
 subtitle: Documentation
-bibliography: inst/RatingShiftHappens.bib
+bibliography: inst/ShiftHappens.bib
 ---
 
 ```{r, include = FALSE}
@@ -26,8 +26,21 @@ knitr::opts_chunk$set(
 1.  [BayDERS](https://github.com/MatteoDarienzo/BayDERS) developed by [@darienzoDetectionEstimationStagedischarge2021](https://theses.hal.science/tel-03211343).
 2.  [RatingShiftHappens](https://github.com/Felipemendezrios/RatingShiftHappens), a previous version of this package.
 
+You can install the latest stable version from  [CRAN](https://CRAN.R-project.org) [recommended] with:
+
+```{r message=FALSE, eval=FALSE}
+install.packages('ShiftHappens')
+```
+
+or the development version from [Github](https://github.com/benRenard/ShiftHappens) [may be unstable] with:
+
+```{r message=FALSE, eval=FALSE}
+devtools::install_github('benRenard/ShiftHappens')
+```
+
+The package can then be loaded with:
+
 ```{r  message=FALSE}
-# devtools::install_github("benRenard/ShiftHappens") # Install before first use
 library(ShiftHappens)
 ```
 
@@ -45,7 +58,7 @@ The dataset `RhoneRiverAMAX` coming with the package contains annual maximum sta
 
 ## Basic usage
 
-To segment a series of observations without knowing the number of segments, we recommend starting with the function `Segmentation_Recursive`. With its default arguments, this function attempts to split the series into two segments using the method described in [@gombay1994](https://www.sciencedirect.com/science/article/pii/0304414994901546), then if successful tries to further split each obtained segment into two sub-segments, and so on until all segments cannot be further split. The function returns an object (see `?recursiveSegmentation`) that can be plotted (see `?plot.recursiveSegmentation`).
+To segment a series of observations without knowing the number of segments, we recommend starting with the function `Segmentation_Recursive`. With its default arguments, this function attempts to split the series into two segments using the method described in @gombay1994, then if successful tries to further split each obtained segment into two sub-segments, and so on until all segments cannot be further split. The function returns an object (see `?recursiveSegmentation`) that can be plotted (see `?plot.recursiveSegmentation`).
 
 ```{r Segmentation_Recursive}
 sg=Segmentation_Recursive(time=RhoneRiverAMAX$Date,
@@ -72,7 +85,7 @@ plot(sg$tree)
 
 ## Advanced usages
 
-If the number of segments is known, the function `Segmentation_Engine` can be used. It returns an object (see `?simpleSegmentation`) that can be plotted. Note that if the desired number of segments is larger than two, the aforementioned method of @gombay1994 is replaced by the bayesian method described by [@darienzoDetectionStageDischarge2021](https://doi.org/10.1029/2020WR028607). The package [RBaM](https://github.com/BaM-tools/RBaM) needs to be installed in this case.
+If the number of segments is known, the function `Segmentation_Engine` can be used. It returns an object (see `?simpleSegmentation`) that can be plotted. Note that if the desired number of segments is larger than two, the aforementioned method of @gombay1994 is replaced by the bayesian method described by @darienzoDetectionStageDischarge2021. The package [RBaM](https://github.com/BaM-tools/RBaM) needs to be installed in this case.
 
 ```{r Segmentation_Engine}
 sg=Segmentation_Engine(time=RhoneRiverAMAX$Date,
@@ -96,7 +109,7 @@ In some cases, the objective is not to assess whether the properties of a variab
 
 ## Motivating dataset
 
-The dataset `ArdecheRiverGaugings` coming with the package contains joint measurements of stage (`H`, $m$) and discharge (`Q`, $m^3.s^{-1}$) for the Ardèche River at Meyras station, France, along with the associated discharge uncertainties expressed as standard deviations (`uQ`). The figure suggests the existence of at least two distinct relations. For more details on this dataset, see [@mansanarezShiftHappensAdjusting2019](https://doi.org/10.1029/2018WR023389).
+The dataset `ArdecheRiverGaugings` coming with the package contains joint measurements of stage (`H`, $m$) and discharge (`Q`, $m^3.s^{-1}$) for the Ardèche River at Meyras station, France, along with the associated discharge uncertainties expressed as standard deviations (`uQ`). The figure suggests the existence of at least two distinct relations. For more details on this dataset, see @mansanarezShiftHappensAdjusting2019.
 
 ```{r Meyras}
 plot(ArdecheRiverGaugings$H,ArdecheRiverGaugings$Q)

@@ -33,8 +33,24 @@ applications. The package is derived from previous works, in particular:
 2.  [RatingShiftHappens](https://github.com/Felipemendezrios/RatingShiftHappens),
     a previous version of this package.
 
+You can install the latest stable version from
+[CRAN](https://CRAN.R-project.org) \[recommended\] with:
+
 ``` r
-# devtools::install_github("benRenard/ShiftHappens") # Install before first use
+install.packages('ShiftHappens')
+```
+
+or the development version from
+[Github](https://github.com/benRenard/ShiftHappens) \[may be unstable\]
+with:
+
+``` r
+devtools::install_github('benRenard/ShiftHappens')
+```
+
+The package can then be loaded with:
+
+``` r
 library(ShiftHappens)
 ```
 
@@ -57,7 +73,7 @@ on this dataset, see [Lucas et al.
  plot(RhoneRiverAMAX$Date,RhoneRiverAMAX$H)
 ```
 
-<img src="man/readme/README-Beaucaire-1.png" width="100%" />
+<img src="man/readme/README-Beaucaire-1.png" alt="" width="100%" />
 
 ## Basic usage
 
@@ -65,12 +81,11 @@ To segment a series of observations without knowing the number of
 segments, we recommend starting with the function
 `Segmentation_Recursive`. With its default arguments, this function
 attempts to split the series into two segments using the method
-described in [Gombay and Horvath
-(1994)](https://www.sciencedirect.com/science/article/pii/0304414994901546),
-then if successful tries to further split each obtained segment into two
-sub-segments, and so on until all segments cannot be further split. The
-function returns an object (see `?recursiveSegmentation`) that can be
-plotted (see `?plot.recursiveSegmentation`).
+described in Gombay and Horvath (1994), then if successful tries to
+further split each obtained segment into two sub-segments, and so on
+until all segments cannot be further split. The function returns an
+object (see `?recursiveSegmentation`) that can be plotted (see
+`?plot.recursiveSegmentation`).
 
 ``` r
 sg=Segmentation_Recursive(time=RhoneRiverAMAX$Date,
@@ -78,11 +93,11 @@ sg=Segmentation_Recursive(time=RhoneRiverAMAX$Date,
                          u=RhoneRiverAMAX$uH)
 sg$shifts # estimated shifts
 #>          tau  I95_lower  I95_upper id_iteration
-#> 1 1967-03-10 1967-04-12 1971-03-11            1
+#> 1 1967-03-10 1967-04-19 1971-02-28            1
 plot(sg)
 ```
 
-<img src="man/readme/README-Segmentation_Recursive-1.png" width="100%" />
+<img src="man/readme/README-Segmentation_Recursive-1.png" alt="" width="100%" />
 
 For an illustration with more detected segments, consider segmenting the
 series of discharge uncertainties `uQ`: the many detected changes
@@ -93,18 +108,18 @@ sg=Segmentation_Recursive(time=RhoneRiverAMAX$Date,
                           obs=RhoneRiverAMAX$uQ)
 sg$shifts
 #>          tau  I95_lower  I95_upper id_iteration
-#> 1 1841-10-27 1841-11-04 1842-09-21            1
-#> 5 1855-10-21 1845-09-25 1856-05-18            6
-#> 3 1858-03-04 1856-09-09 1939-06-16            4
-#> 8 1889-01-01 1879-01-13 1919-10-13           12
-#> 6 1934-05-01 1932-06-26 1935-11-01            7
-#> 2 1952-12-01 1951-12-16 1956-02-24            3
-#> 7 1967-03-10 1967-01-01 1971-02-04            8
-#> 4 1975-09-16 1974-08-13 1982-12-29            5
+#> 1 1841-10-27 1841-11-05 1842-09-15            1
+#> 5 1855-10-21 1846-01-06 1856-05-22            6
+#> 3 1858-03-04 1856-07-29 1939-11-06            4
+#> 8 1889-01-01 1879-12-23 1920-01-28           12
+#> 6 1934-05-01 1932-08-14 1935-10-22            7
+#> 2 1952-12-01 1952-01-23 1956-02-08            3
+#> 7 1967-03-10 1966-07-16 1971-02-15            8
+#> 4 1975-09-16 1974-08-13 1982-10-27            5
 plot(sg)
 ```
 
-<img src="man/readme/README-Segmentation_Recursive2-1.png" width="100%" />
+<img src="man/readme/README-Segmentation_Recursive2-1.png" alt="" width="100%" />
 
 It is also possible to visualize the recursion tree:
 
@@ -112,7 +127,7 @@ It is also possible to visualize the recursion tree:
 plot(sg$tree)
 ```
 
-<img src="man/readme/README-Tree-1.png" width="100%" />
+<img src="man/readme/README-Tree-1.png" alt="" width="100%" />
 
 ## Advanced usages
 
@@ -120,10 +135,9 @@ If the number of segments is known, the function `Segmentation_Engine`
 can be used. It returns an object (see `?simpleSegmentation`) that can
 be plotted. Note that if the desired number of segments is larger than
 two, the aforementioned method of Gombay and Horvath (1994) is replaced
-by the bayesian method described by [M. Darienzo et al.
-(2021)](https://doi.org/10.1029/2020WR028607). The package
-[RBaM](https://github.com/BaM-tools/RBaM) needs to be installed in this
-case.
+by the bayesian method described by M. Darienzo et al. (2021). The
+package [RBaM](https://github.com/BaM-tools/RBaM) needs to be installed
+in this case.
 
 ``` r
 sg=Segmentation_Engine(time=RhoneRiverAMAX$Date,
@@ -132,7 +146,7 @@ sg=Segmentation_Engine(time=RhoneRiverAMAX$Date,
 plot(sg)
 ```
 
-<img src="man/readme/README-Segmentation_Engine-1.png" width="100%" />
+<img src="man/readme/README-Segmentation_Engine-1.png" alt="" width="100%" />
 
 When the number of segments is unknown, the function `Segmentation` will
 try all possible numbers up to `nSmax`, and automatically select the
@@ -145,7 +159,7 @@ sg=Segmentation(time=RhoneRiverAMAX$Date,
 plot(sg)
 ```
 
-<img src="man/readme/README-Segmentation-1.png" width="100%" />
+<img src="man/readme/README-Segmentation-1.png" alt="" width="100%" />
 
 # Segmentation based on recursive modeling
 
@@ -163,14 +177,14 @@ joint measurements of stage (`H`, $m$) and discharge (`Q`, $m^3.s^{-1}$)
 for the Ardèche River at Meyras station, France, along with the
 associated discharge uncertainties expressed as standard deviations
 (`uQ`). The figure suggests the existence of at least two distinct
-relations. For more details on this dataset, see [Mansanarez et al.
-(2019)](https://doi.org/10.1029/2018WR023389).
+relations. For more details on this dataset, see Mansanarez et al.
+(2019).
 
 ``` r
 plot(ArdecheRiverGaugings$H,ArdecheRiverGaugings$Q)
 ```
 
-<img src="man/readme/README-Meyras-1.png" width="100%" />
+<img src="man/readme/README-Meyras-1.png" alt="" width="100%" />
 
 ## Recursive linear regression
 
@@ -191,7 +205,7 @@ sg=Segmentation_RecursiveModeling(x=ArdecheRiverGaugings$H,
 plot(sg)
 ```
 
-<img src="man/readme/README-Recursive_Linear-1.png" width="100%" />
+<img src="man/readme/README-Recursive_Linear-1.png" alt="" width="100%" />
 
 It is possible to replace the upper panel showing the relation between
 $x$ and $y$ by a time series of $y$ (or $x$).
@@ -200,7 +214,7 @@ $x$ and $y$ by a time series of $y$ (or $x$).
 plot(sg,dataPlotType='ty')
 ```
 
-<img src="man/readme/README-Recursive_Linear2-1.png" width="100%" />
+<img src="man/readme/README-Recursive_Linear2-1.png" alt="" width="100%" />
 
 ## Recursive application of the BaRatin rating curve method
 
@@ -241,7 +255,7 @@ sg=Segmentation_RecursiveModeling(x=ArdecheRiverGaugings$H,
 plot(sg)
 ```
 
-<img src="man/readme/README-Recursive_BaRatin-1.png" width="100%" />
+<img src="man/readme/README-Recursive_BaRatin-1.png" alt="" width="100%" />
 
 Note that each individual plot created by the package is a ggplot that
 can be customized. For instance:
@@ -251,7 +265,7 @@ plot(sg,type='data')+ggplot2::labs(x='Stage',y='Discharge')+
   ggplot2::scale_y_continuous(trans='log')
 ```
 
-<img src="man/readme/README-Recursive_BaRatin2-1.png" width="100%" />
+<img src="man/readme/README-Recursive_BaRatin2-1.png" alt="" width="100%" />
 
 # Segmentation based on stage recessions
 
@@ -273,7 +287,7 @@ stage values. For more details on this dataset, see [Matteo Darienzo
 plot(ArdecheRiverStage$Date,ArdecheRiverStage$H,type='l')
 ```
 
-<img src="man/readme/README-MeyrasStage-1.png" width="100%" />
+<img src="man/readme/README-MeyrasStage-1.png" alt="" width="100%" />
 
 ## Recession extraction
 
@@ -291,7 +305,7 @@ rec=Extract_Recessions(time=ArdecheRiverStage$Date,H=ArdecheRiverStage$H,dMin=30
 patchwork::wrap_plots(plot(rec),plot(rec,type='th'))
 ```
 
-<img src="man/readme/README-extractRec-1.png" width="100%" />
+<img src="man/readme/README-extractRec-1.png" alt="" width="100%" />
 
 ## Recession segmentation
 
@@ -306,7 +320,7 @@ sg=Segmentation_Recursive(obs=lows$H,time=lows$date)
 plot(sg)
 ```
 
-<img src="man/readme/README-recSegment-1.png" width="100%" />
+<img src="man/readme/README-recSegment-1.png" alt="" width="100%" />
 
 A more advanced approach is to model the extracted recessions and to
 segment the parameter of this model that controls the asymptotic low
@@ -354,7 +368,7 @@ f=Fit_Recessions(rec,equation='M7',
 patchwork::wrap_plots(plot(f),plot(f,type='ty'),ncol=1)
 ```
 
-<img src="man/readme/README-recModel-1.png" width="100%" />
+<img src="man/readme/README-recModel-1.png" alt="" width="100%" />
 
 Second, the parameters controlling the recession asymptotic stages can
 be extracted and segmented. Note that the wrapper function
@@ -367,7 +381,7 @@ sg=Segmentation_Recursive(obs=betas$value,u=betas$u)
 plot(sg)
 ```
 
-<img src="man/readme/README-recModel2-1.png" width="100%" />
+<img src="man/readme/README-recModel2-1.png" alt="" width="100%" />
 
 # References
 
@@ -389,8 +403,7 @@ Quantification.” PhD thesis.
 Darienzo, M., B. Renard, J. Le Coz, and M. Lang. 2021. “Detection of
 Stage-Discharge Rating Shifts Using Gaugings: A Recursive Segmentation
 Procedure Accounting for Observational and Model Uncertainties.” *Water
-Resources Research* 57 (4): e2020WR028607.
-<https://doi.org/10.1029/2020WR028607>.
+Resources Research* 57 (4): doi:10.1029/2020WR028607.
 
 </div>
 
@@ -398,7 +411,8 @@ Resources Research* 57 (4): e2020WR028607.
 
 Gombay, E., and L. Horvath. 1994. “An Application of the
 Maximum-Likelihood Test to the Change-Point Problem.” *Stochastic
-Processes and Their Applications* 50 (1): 161–71.
+Processes and Their Applications* 50 (1):
+doi:10.1016/0304-4149(94)90154-6.
 
 </div>
 
@@ -407,8 +421,7 @@ Processes and Their Applications* 50 (1): 161–71.
 Le Coz, J., B. Renard, L. Bonnifait, F. Branger, and R. Le Boursicaud.
 2014. “Combining Hydraulic Knowledge and Uncertain Gaugings in the
 Estimation of Hydrometric Rating Curves: A Bayesian Approach.” *Journal
-of Hydrology* 509 (February): 573–87.
-<https://doi.org/10.1016/j.jhydrol.2013.11.016>.
+of Hydrology* 509: doi:10.1016/j.jhydrol.2013.11.016.
 
 </div>
 
@@ -417,8 +430,8 @@ of Hydrology* 509 (February): 573–87.
 Lucas, Mathieu, Benjamin Renard, Jérôme Le Coz, Michel Lang, Antoine
 Bard, and Gilles Pierrefeu. 2023. “Are Historical Stage Records Useful
 to Decrease the Uncertainty of Flood Frequency Analysis ? A 200-Year
-Long Case Study.” *Journal of Hydrology* 624 (September): 129840.
-<https://doi.org/10.1016/j.jhydrol.2023.129840>.
+Long Case Study.” *Journal of Hydrology* 624:
+doi:10.1016/j.jhydrol.2023.129840.
 
 </div>
 
@@ -426,8 +439,8 @@ Long Case Study.” *Journal of Hydrology* 624 (September): 129840.
 
 Mansanarez, V., B. Renard, J. Le Coz, M. Lang, and M. Darienzo. 2019.
 “Shift Happens! Adjusting Stage-Discharge Rating Curves to Morphological
-Changes at Known Times.” *Water Resources Research* 55 (4): 2876–99.
-<https://doi.org/10.1029/2018WR023389>.
+Changes at Known Times.” *Water Resources Research* 55 (4):
+doi:10.1029/2018WR023389.
 
 </div>
 

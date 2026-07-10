@@ -6,3 +6,5 @@
 ^README\.Rmd$
 ^LICENSE$
 ^bugs
+^cran-comments\.md$
+^\.github$

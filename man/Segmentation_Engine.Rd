@@ -6,7 +6,7 @@
 \source{
 \url{https://theses.hal.science/tel-03211343}
 
-\url{https://agupubs.onlinelibrary.wiley.com/doi/epdf/10.1029/2020WR028607}
+\doi{https://doi.org/10.1029/2020WR028607}
 }
 \usage{
 Segmentation_Engine(

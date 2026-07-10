@@ -393,7 +393,7 @@ Segmentation <- function(obs,
 #' @inherit simpleSegmentation return
 #'
 #' @source \url{https://theses.hal.science/tel-03211343}
-#' @source \url{https://agupubs.onlinelibrary.wiley.com/doi/epdf/10.1029/2020WR028607}
+#' @source \doi{https://doi.org/10.1029/2020WR028607}
 #'
 #' @examples
 #' # Default segmentation using quick approximation
