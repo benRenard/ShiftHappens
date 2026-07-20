@@ -1,14 +1,14 @@
 Package: ShiftHappens
 Type: Package
 Title: Detecting, Visualizing and Estimating Shifts 
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: c(
     person("Felipe", "Mendez", email = "felipe-alberto.mendez-rios@inrae.fr",role = c("aut"),comment = c(ORCID = "0009-0004-0371-8699")),
     person("Benjamin", "Renard", email = "benjamin.renard@inrae.fr",role = c("aut", "cre","cph"),comment = c(ORCID = "0000-0001-8447-5430")),
     person("Matteo", "Darienzo", role = c("aut")),
     person("INRAE", role = c("fnd")),
     person("Ministère de la Transition Ecologique - SCHAPI", role = c("fnd")))
-Description: Tools for detecting, visualizing and estimating shifts, 
+Description: Detecting, visualizing and estimating shifts, 
     with a specific focus on stage-discharge rating shifts.
     The main methods are described in Darienzo et al. (2021) <doi:10.1029/2020WR028607>
     and Mansanarez et al. (2019) <doi:10.1029/2018WR023389>.
