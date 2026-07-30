@@ -22,6 +22,8 @@ February 2026
   - [Recession segmentation](#recession-segmentation)
 - [References](#references)
 
+[![DOI](https://zenodo.org/badge/1064818700.svg)](https://doi.org/10.5281/zenodo.21699401)
+
 # Introduction
 
 `ShiftHappens` is an `R` package for detecting, visualizing and
@@ -34,7 +36,8 @@ applications. The package is derived from previous works, in particular:
     a previous version of this package.
 
 You can install the latest stable version from
-[CRAN](https://CRAN.R-project.org) \[recommended\] with:
+[CRAN](https://cran.r-project.org/package=ShiftHappens) \[recommended\]
+with:
 
 ``` r
 install.packages('ShiftHappens')
@@ -93,7 +96,7 @@ sg=Segmentation_Recursive(time=RhoneRiverAMAX$Date,
                          u=RhoneRiverAMAX$uH)
 sg$shifts # estimated shifts
 #>          tau  I95_lower  I95_upper id_iteration
-#> 1 1967-03-10 1967-04-19 1971-02-28            1
+#> 1 1967-03-10 1967-03-17 1971-04-11            1
 plot(sg)
 ```
 
@@ -108,14 +111,14 @@ sg=Segmentation_Recursive(time=RhoneRiverAMAX$Date,
                           obs=RhoneRiverAMAX$uQ)
 sg$shifts
 #>          tau  I95_lower  I95_upper id_iteration
-#> 1 1841-10-27 1841-11-05 1842-09-15            1
-#> 5 1855-10-21 1846-01-06 1856-05-22            6
-#> 3 1858-03-04 1856-07-29 1939-11-06            4
-#> 8 1889-01-01 1879-12-23 1920-01-28           12
-#> 6 1934-05-01 1932-08-14 1935-10-22            7
-#> 2 1952-12-01 1952-01-23 1956-02-08            3
-#> 7 1967-03-10 1966-07-16 1971-02-15            8
-#> 4 1975-09-16 1974-08-13 1982-10-27            5
+#> 1 1841-10-27 1841-11-04 1842-09-19            1
+#> 5 1855-10-21 1845-08-02 1856-05-13            6
+#> 3 1858-03-04 1856-08-22 1935-10-15            4
+#> 8 1889-01-01 1880-12-30 1920-02-20           12
+#> 6 1934-05-01 1932-06-26 1935-11-01            7
+#> 2 1952-12-01 1952-01-08 1956-06-11            3
+#> 7 1967-03-10 1966-12-16 1971-02-08            8
+#> 4 1975-09-16 1974-10-08 1982-01-04            5
 plot(sg)
 ```
 

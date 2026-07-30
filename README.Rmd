@@ -19,6 +19,9 @@ knitr::opts_chunk$set(
 )
 ```
 
+
+[![DOI](https://zenodo.org/badge/1064818700.svg)](https://doi.org/10.5281/zenodo.21699401)
+
 # Introduction
 
 `ShiftHappens` is an `R` package for detecting, visualizing and estimating shifts, with a specific focus on hydrology and hydrometry applications. The package is derived from previous works, in particular:
@@ -26,7 +29,7 @@ knitr::opts_chunk$set(
 1.  [BayDERS](https://github.com/MatteoDarienzo/BayDERS) developed by [@darienzoDetectionEstimationStagedischarge2021](https://theses.hal.science/tel-03211343).
 2.  [RatingShiftHappens](https://github.com/Felipemendezrios/RatingShiftHappens), a previous version of this package.
 
-You can install the latest stable version from  [CRAN](https://CRAN.R-project.org) [recommended] with:
+You can install the latest stable version from  [CRAN](https://cran.r-project.org/package=ShiftHappens) [recommended] with:
 
 ```{r message=FALSE, eval=FALSE}
 install.packages('ShiftHappens')
